@@ -1,0 +1,49 @@
+# ── Python ───────────────────────────────────────────────────
+__pycache__/
+*.py[oc]
+*.pyo
+*.pyd
+*.so
+
+# Build / dist
+build/
+dist/
+wheels/
+*.egg-info/
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Environment variables — committed for this project (dev values only)
+
+# Alembic
+# (versions are committed; keep the folder, ignore nothing extra)
+
+# pytest / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# mypy / ruff
+.mypy_cache/
+.ruff_cache/
+
+# ── Node / Frontend ──────────────────────────────────────────
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# ── Docker ───────────────────────────────────────────────────
+# Keep docker-compose.yml committed; ignore local overrides
+docker-compose.override.yml
+
+# ── OS / Editor ──────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
