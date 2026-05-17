@@ -1,7 +1,7 @@
 services:
   db:
     image: postgres:17-alpine
-    container_name: kdkdkdkd-db
+    container_name: sharq-db
     restart: unless-stopped
     environment:
       POSTGRES_USER: sharq
@@ -20,7 +20,7 @@ services:
   backend:
     build:
       context: ./backend
-    container_name: kdkdkdkd-backend
+    container_name: sharq-backend
     restart: unless-stopped
     ports:
       - "8000:8000"
@@ -37,7 +37,7 @@ services:
   sync_history:
     build:
       context: ./camera_scheduler
-    container_name: kdkdkdkd-sync-history
+    container_name: sharq-sync-history
     command: ["python", "sync_history.py"]
     env_file: ./camera_scheduler/.env
     depends_on:
@@ -47,8 +47,9 @@ services:
   camera_scheduler:
     build:
       context: ./camera_scheduler
-    container_name: kdkdkdkd-scheduler
+    container_name: sharq-camera-scheduler
     restart: unless-stopped
+    env_file: ./camera_scheduler/.env
     depends_on:
       sync_history:
         condition: service_completed_successfully
@@ -56,10 +57,12 @@ services:
   frontend:
     build:
       context: ./frontend
-    container_name: kdkdkdkd-frontend
+    container_name: sharq-frontend
     restart: unless-stopped
+    environment:
+      PORT: "80"
     ports:
-      - "80:80"
+      - "5173:80"
     depends_on:
       - backend
 

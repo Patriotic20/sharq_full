@@ -1,0 +1,27 @@
+# Prod override. Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+#
+# Reads POSTGRES_PASSWORD from root ./.env.prod (NOT committed).
+# Each service swaps to its own .env.prod with real secrets.
+
+services:
+  db:
+    ports: []                                # DB internal-only
+    environment:
+      POSTGRES_USER: sharq
+      POSTGRES_DB: sharq
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+  backend:
+    ports: []                                # API only via frontend nginx proxy
+    env_file: ./backend/.env.prod
+
+  camera_scheduler:
+    env_file: ./camera_scheduler/.env.prod
+
+  sync_history:
+    env_file: ./camera_scheduler/.env.prod
+
+  frontend:
+    ports:
+      - "127.0.0.1:5173:80"                  # host nginx is the only public entry

@@ -17,7 +17,10 @@ wheels/
 venv/
 env/
 
-# Environment variables — committed for this project (dev values only)
+# Environment variables — dev .env committed (real values for local dev),
+# .env.prod with real secrets is NEVER committed.
+.env.prod
+**/.env.prod
 
 # Alembic
 # (versions are committed; keep the folder, ignore nothing extra)

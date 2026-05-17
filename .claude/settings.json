@@ -25,7 +25,19 @@
       "Bash(rsync -a --exclude=.env --exclude=.env.template --exclude=.venv/ --exclude=__pycache__/ --exclude=*.pyc --exclude=.pytest_cache/ --exclude=.mypy_cache/ --exclude=.ruff_cache/ --exclude=seed.py sharq/backend/ deploy/backend/)",
       "Bash(rsync -a --exclude=.env --exclude=node_modules/ --exclude=dist/ --exclude=build/ --exclude=.vite/ sharq/frontend/ deploy/frontend/)",
       "Bash(rsync -a --exclude=.env --exclude=.venv/ --exclude=__pycache__/ --exclude=*.pyc --exclude=.pytest_cache/ --exclude=.mypy_cache/ --exclude=.ruff_cache/ lllll/ deploy/camera_schedule/)",
-      "Bash(git ls-remote *)"
+      "Bash(git ls-remote *)",
+      "Bash(grep -E \"\\\\.env$|\\\\.env \")",
+      "Bash(git commit -m ' *)",
+      "Bash(docker compose *)",
+      "Bash(curl -sI http://localhost:5173/)",
+      "Bash(curl -sI http://localhost:5173/api/v1/docs)",
+      "Bash(curl -s http://localhost:5173/api/v1/openapi.json)",
+      "Bash(curl -sI http://localhost:8000/docs)",
+      "Bash(curl -sI http://localhost:8000/api/v1/docs)",
+      "Bash(curl -s http://localhost:8000/openapi.json)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(list\\(d.get\\('paths',{}\\).keys\\(\\)\\)[:10]\\)\")",
+      "Bash(curl -sI http://localhost:5173/api/v1/cameras/)",
+      "Bash(curl -sI http://localhost:8000/api/v1/cameras/)"
     ],
     "additionalDirectories": [
       "/home/bekzod/Projects/Production/kdkdkdkd/lllll/.git",
