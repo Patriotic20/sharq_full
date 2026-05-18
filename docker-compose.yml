@@ -34,15 +34,15 @@ services:
       db:
         condition: service_healthy
 
-  sync_history:
-    build:
-      context: ./camera_scheduler
-    container_name: sharq-sync-history
-    command: ["python", "sync_history.py"]
-    env_file: ./camera_scheduler/.env
-    depends_on:
-      backend:
-        condition: service_healthy
+  # sync_history:
+  #   build:
+  #     context: ./camera_scheduler
+  #   container_name: sharq-sync-history
+  #   command: ["python", "sync_history.py"]
+  #   env_file: ./camera_scheduler/.env
+  #   depends_on:
+  #     backend:
+  #       condition: service_healthy
 
   camera_scheduler:
     build:
@@ -50,17 +50,15 @@ services:
     container_name: sharq-camera-scheduler
     restart: unless-stopped
     env_file: ./camera_scheduler/.env
-    depends_on:
-      sync_history:
-        condition: service_completed_successfully
+    # depends_on:
+    #   sync_history:
+    #     condition: service_completed_successfully
 
   frontend:
     build:
       context: ./frontend
     container_name: sharq-frontend
     restart: unless-stopped
-    environment:
-      PORT: "80"
     ports:
       - "5173:80"
     depends_on:
