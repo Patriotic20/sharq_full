@@ -1,10 +1,8 @@
-from typing import AsyncGenerator
-
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.database import db_helper
+from app.core.deps import get_session, require_permission
 from app.models.attendances import Attendance
 from app.models.work_schedule import WorkSchedule
 from app.schemas.work_schedule import (
@@ -17,11 +15,6 @@ from app.services.attendance_status import compute_status
 router = APIRouter(prefix="/settings/work-schedule", tags=["settings"])
 
 
-async def get_session() -> AsyncGenerator[AsyncSession, None]:
-    async for session in db_helper.session_getter():
-        yield session
-
-
 async def _get_schedule(session: AsyncSession) -> WorkSchedule:
     result = await session.execute(select(WorkSchedule).where(WorkSchedule.id == 1))
     schedule = result.scalar_one_or_none()
@@ -30,14 +23,22 @@ async def _get_schedule(session: AsyncSession) -> WorkSchedule:
     return schedule
 
 
-@router.get("/", response_model=WorkScheduleRead)
+@router.get(
+    "/",
+    response_model=WorkScheduleRead,
+    dependencies=[Depends(require_permission("work_schedules:read"))],
+)
 async def get_work_schedule(
     session: AsyncSession = Depends(get_session),
 ) -> WorkSchedule:
     return await _get_schedule(session)
 
 
-@router.patch("/", response_model=WorkScheduleRead)
+@router.patch(
+    "/",
+    response_model=WorkScheduleRead,
+    dependencies=[Depends(require_permission("work_schedules:write"))],
+)
 async def update_work_schedule(
     data: WorkScheduleUpdate,
     session: AsyncSession = Depends(get_session),
@@ -53,7 +54,11 @@ async def update_work_schedule(
     return schedule
 
 
-@router.post("/recompute", response_model=RecomputeResult)
+@router.post(
+    "/recompute",
+    response_model=RecomputeResult,
+    dependencies=[Depends(require_permission("work_schedules:write"))],
+)
 async def recompute_statuses(
     session: AsyncSession = Depends(get_session),
 ) -> RecomputeResult:

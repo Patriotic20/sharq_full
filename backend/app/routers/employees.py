@@ -1,9 +1,7 @@
-from typing import AsyncGenerator
-
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.database import db_helper
+from app.core.deps import get_session, require_permission
 from app.exceptions.employee import (
     DatabaseException,
     EmployeeNotFoundException,
@@ -22,11 +20,6 @@ from app.services.employee import EmployeeService
 router = APIRouter(prefix="/employees", tags=["employees"])
 
 
-async def get_session() -> AsyncGenerator[AsyncSession, None]:
-    async for session in db_helper.session_getter():
-        yield session
-
-
 def get_employee_service(
     session: AsyncSession = Depends(get_session),
 ) -> EmployeeService:
@@ -37,7 +30,11 @@ def _handle(exc: EmployeeNotFoundException | EmployeeAlreadyExistsException | Da
     raise HTTPException(status_code=exc.status_code, detail=exc.detail)
 
 
-@router.get("/", response_model=EmployeeListResponse)
+@router.get(
+    "/",
+    response_model=EmployeeListResponse,
+    dependencies=[Depends(require_permission("employees:read"))],
+)
 async def list_employees(
     page: int = 1,
     size: int = 10,
@@ -51,7 +48,11 @@ async def list_employees(
     return await service.list(pagination, search)
 
 
-@router.get("/{employee_id}", response_model=EmployeeRead)
+@router.get(
+    "/{employee_id}",
+    response_model=EmployeeRead,
+    dependencies=[Depends(require_permission("employees:read"))],
+)
 async def get_employee(
     employee_id: int,
     service: EmployeeService = Depends(get_employee_service),
@@ -62,7 +63,11 @@ async def get_employee(
         _handle(e)
 
 
-@router.patch("/{employee_id}", response_model=EmployeeRead)
+@router.patch(
+    "/{employee_id}",
+    response_model=EmployeeRead,
+    dependencies=[Depends(require_permission("employees:write"))],
+)
 async def update_employee(
     employee_id: int,
     data: EmployeeUpdate,
@@ -74,7 +79,11 @@ async def update_employee(
         _handle(e)
 
 
-@router.delete("/{employee_id}", status_code=204)
+@router.delete(
+    "/{employee_id}",
+    status_code=204,
+    dependencies=[Depends(require_permission("employees:delete"))],
+)
 async def delete_employee(
     employee_id: int,
     service: EmployeeService = Depends(get_employee_service),

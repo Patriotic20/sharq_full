@@ -48,6 +48,12 @@ class CorsConfig(BaseModel):
     allow_headers: list[str] = ["*"]
 
 
+class AdminSeedConfig(BaseModel):
+    username: str = "admin"
+    password: str = "admin"
+    full_name: str | None = "System Administrator"
+
+
 class AppConfig(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -61,6 +67,7 @@ class AppConfig(BaseSettings):
     database: DatabaseConfig
     jwt: JwtConfig
     cors: CorsConfig = CorsConfig()
+    admin: AdminSeedConfig = AdminSeedConfig()
 
 
 settings = AppConfig()

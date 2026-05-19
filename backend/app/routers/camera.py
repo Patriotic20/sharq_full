@@ -1,9 +1,7 @@
-from typing import AsyncGenerator
-
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.database import db_helper
+from app.core.deps import get_session, require_permission
 from app.exceptions.camera import (
     CameraAlreadyExistsException,
     CameraNotFoundException,
@@ -23,11 +21,6 @@ from app.services.camera import CameraService
 router = APIRouter(prefix="/cameras", tags=["cameras"])
 
 
-async def get_session() -> AsyncGenerator[AsyncSession, None]:
-    async for session in db_helper.session_getter():
-        yield session
-
-
 def get_camera_service(
     session: AsyncSession = Depends(get_session),
 ) -> CameraService:
@@ -38,7 +31,12 @@ def _handle(exc: CameraNotFoundException | CameraAlreadyExistsException | Databa
     raise HTTPException(status_code=exc.status_code, detail=exc.detail)
 
 
-@router.post("/", response_model=CameraRead, status_code=201)
+@router.post(
+    "/",
+    response_model=CameraRead,
+    status_code=201,
+    dependencies=[Depends(require_permission("cameras:write"))],
+)
 async def create_camera(
     data: CameraCreate,
     service: CameraService = Depends(get_camera_service),
@@ -49,7 +47,11 @@ async def create_camera(
         _handle(e)
 
 
-@router.get("/", response_model=CameraListResponse)
+@router.get(
+    "/",
+    response_model=CameraListResponse,
+    dependencies=[Depends(require_permission("cameras:read"))],
+)
 async def list_cameras(
     page: int = 1,
     size: int = 10,
@@ -63,7 +65,11 @@ async def list_cameras(
     return await service.list(pagination, search)
 
 
-@router.get("/{camera_id}", response_model=CameraRead)
+@router.get(
+    "/{camera_id}",
+    response_model=CameraRead,
+    dependencies=[Depends(require_permission("cameras:read"))],
+)
 async def get_camera(
     camera_id: int,
     service: CameraService = Depends(get_camera_service),
@@ -74,7 +80,11 @@ async def get_camera(
         _handle(e)
 
 
-@router.patch("/{camera_id}", response_model=CameraRead)
+@router.patch(
+    "/{camera_id}",
+    response_model=CameraRead,
+    dependencies=[Depends(require_permission("cameras:write"))],
+)
 async def update_camera(
     camera_id: int,
     data: CameraUpdate,
@@ -86,7 +96,11 @@ async def update_camera(
         _handle(e)
 
 
-@router.delete("/{camera_id}", status_code=204)
+@router.delete(
+    "/{camera_id}",
+    status_code=204,
+    dependencies=[Depends(require_permission("cameras:write"))],
+)
 async def delete_camera(
     camera_id: int,
     service: CameraService = Depends(get_camera_service),
