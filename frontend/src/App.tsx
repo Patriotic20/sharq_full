@@ -94,12 +94,14 @@ function Sidebar() {
   return (
     <aside className="w-60 flex-shrink-0 bg-slate-900 flex flex-col">
       <div className="px-5 py-6 flex items-center gap-3">
-        <div className="w-9 h-9 bg-primary-600 rounded-xl flex items-center justify-center flex-shrink-0">
-          <span className="text-white font-bold text-base leading-none">S</span>
-        </div>
+        <img
+          src="/logo.png"
+          alt="Sharq Universiteti"
+          className="w-9 h-9 rounded-xl flex-shrink-0 object-contain bg-white/5"
+        />
         <div>
-          <p className="text-white font-bold text-base leading-tight">Sharq</p>
-          <p className="text-slate-500 text-xs leading-tight">Nazorat tizimi</p>
+          <p className="text-white font-bold text-base leading-tight">Sharq Universiteti</p>
+          <p className="text-slate-500 text-xs leading-tight">Xodimlar monitoringi</p>
         </div>
       </div>
 

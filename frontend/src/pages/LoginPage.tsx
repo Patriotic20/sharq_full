@@ -40,12 +40,15 @@ export default function LoginPage() {
       <div className="w-full max-w-sm bg-white rounded-2xl shadow-xl p-8">
 
         <div className="flex flex-col items-center gap-3 mb-6">
-          <div className="w-12 h-12 bg-primary-600 rounded-2xl flex items-center justify-center">
-            <span className="text-white font-bold text-xl leading-none">S</span>
-          </div>
+          <img
+            src="/logo.png"
+            alt="Sharq Universiteti"
+            className="w-16 h-16 rounded-2xl object-contain"
+          />
           <div className="text-center">
-            <h1 className="text-lg font-semibold text-gray-900">Sharq Nazorat tizimi</h1>
-            <p className="text-xs text-gray-400 mt-0.5">Tizimga kirish</p>
+            <h1 className="text-lg font-semibold text-gray-900">Sharq Universiteti</h1>
+            <p className="text-xs text-gray-500 mt-0.5">Xodimlar monitoringi</p>
+            <p className="text-xs text-gray-400 mt-1">Tizimga kirish</p>
           </div>
         </div>
 
