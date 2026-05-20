@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { deleteAttendance, listAttendances, updateAttendance } from '../api/attendance'
 import AttendanceModal from '../components/AttendanceModal'
+import { PermissionGate } from '../components/PermissionGate'
 import { Badge, PRESENCE_LABEL, PRESENCE_VARIANT, STATUS_LABEL, STATUS_VARIANT } from '../components/ui/Badge'
 import { Calendar } from '../components/ui/Calendar'
 import { DeleteDialog } from '../components/ui/DeleteDialog'
 import { Pagination } from '../components/ui/Pagination'
-import { cn, toYMD } from '../lib/utils'
+import { APP_TZ, cn, todayYMDInAppTZ } from '../lib/utils'
 import type { Attendance, AttendanceListResponse, AttendanceUpdate } from '../types/attendance'
 
 
@@ -13,7 +14,9 @@ function fmt(iso: string | null) {
   if (!iso) return <span className="text-gray-200 select-none">—</span>
   return (
     <span className="tabular-nums">
-      {new Date(iso).toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' })}
+      {new Date(iso).toLocaleTimeString('uz-UZ', {
+        hour: '2-digit', minute: '2-digit', timeZone: APP_TZ,
+      })}
     </span>
   )
 }
@@ -52,7 +55,7 @@ export default function AttendancePage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [page, setPage] = useState(1)
-  const [date, setDate] = useState(() => toYMD(new Date()))
+  const [date, setDate] = useState(() => todayYMDInAppTZ())
   const [statusFilter, setStatusFilter] = useState('')
   const [presenceFilter, setPresenceFilter] = useState('')
   const [editItem, setEditItem] = useState<Attendance | null>(null)
@@ -104,8 +107,9 @@ export default function AttendancePage() {
   }
 
   const formattedDate = date
-    ? new Date(date + 'T00:00:00').toLocaleDateString('uz-UZ', {
+    ? new Date(date + 'T12:00:00+05:00').toLocaleDateString('uz-UZ', {
         weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+        timeZone: APP_TZ,
       })
     : 'Barcha kunlar'
 
@@ -278,18 +282,22 @@ export default function AttendancePage() {
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button
-                              onClick={() => setEditItem(a)}
-                              className="text-xs font-medium px-3 py-1.5 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
-                            >
-                              Tahrirlash
-                            </button>
-                            <button
-                              onClick={() => setDeleteId(a.id)}
-                              className="text-xs font-medium px-3 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
-                            >
-                              O'chirish
-                            </button>
+                            <PermissionGate code="attendances:write">
+                              <button
+                                onClick={() => setEditItem(a)}
+                                className="text-xs font-medium px-3 py-1.5 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
+                              >
+                                Tahrirlash
+                              </button>
+                            </PermissionGate>
+                            <PermissionGate code="attendances:write">
+                              <button
+                                onClick={() => setDeleteId(a.id)}
+                                className="text-xs font-medium px-3 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
+                              >
+                                O'chirish
+                              </button>
+                            </PermissionGate>
                           </div>
                         </td>
                       </tr>

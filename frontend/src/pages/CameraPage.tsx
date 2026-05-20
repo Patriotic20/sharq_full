@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { createCamera, deleteCamera, listCameras, updateCamera } from '../api/camera'
 import CameraModal from '../components/CameraModal'
+import { PermissionGate } from '../components/PermissionGate'
 import { Badge, CAMERA_TYPE_LABEL, CAMERA_TYPE_VARIANT } from '../components/ui/Badge'
 import { DeleteDialog } from '../components/ui/DeleteDialog'
 import { Pagination } from '../components/ui/Pagination'
@@ -77,15 +78,17 @@ export default function CameraPage() {
             <p className="text-sm text-gray-400 mt-0.5">{data.total} ta kamera</p>
           )}
         </div>
-        <button
-          onClick={() => setModal('create')}
-          className="flex items-center gap-2 bg-primary-600 text-white text-sm font-medium px-4 py-2 rounded-xl hover:bg-primary-700 transition-colors shadow-sm"
-        >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-          </svg>
-          Kamera qo'shish
-        </button>
+        <PermissionGate code="cameras:write">
+          <button
+            onClick={() => setModal('create')}
+            className="flex items-center gap-2 bg-primary-600 text-white text-sm font-medium px-4 py-2 rounded-xl hover:bg-primary-700 transition-colors shadow-sm"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+            Kamera qo'shish
+          </button>
+        </PermissionGate>
       </div>
 
       {/* Content */}
@@ -160,18 +163,22 @@ export default function CameraPage() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button
-                          onClick={() => openEdit(camera)}
-                          className="text-xs font-medium px-3 py-1.5 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
-                        >
-                          Tahrirlash
-                        </button>
-                        <button
-                          onClick={() => setDeleteId(camera.id)}
-                          className="text-xs font-medium px-3 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
-                        >
-                          O'chirish
-                        </button>
+                        <PermissionGate code="cameras:write">
+                          <button
+                            onClick={() => openEdit(camera)}
+                            className="text-xs font-medium px-3 py-1.5 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
+                          >
+                            Tahrirlash
+                          </button>
+                        </PermissionGate>
+                        <PermissionGate code="cameras:write">
+                          <button
+                            onClick={() => setDeleteId(camera.id)}
+                            className="text-xs font-medium px-3 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
+                          >
+                            O'chirish
+                          </button>
+                        </PermissionGate>
                       </div>
                     </td>
                   </tr>

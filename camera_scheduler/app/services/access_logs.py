@@ -4,15 +4,16 @@ import asyncio
 import csv
 import logging
 from collections import Counter
-from datetime import datetime, timedelta, timezone
+from datetime import datetime
 
+from app.core.timezone import APP_TZ
 from app.services.attendance import save_attendance
 from app.services.camera import list_cameras
 from app.services.dahua import DahuaClient
 
 logger = logging.getLogger(__name__)
 
-TZ = timezone(timedelta(hours=5))  # Toshkent UTC+5
+TZ = APP_TZ
 
 METHOD_MAP = {
     15: "Face", 1: "Card", 2: "Password", 3: "Fingerprint",

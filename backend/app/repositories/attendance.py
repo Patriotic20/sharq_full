@@ -1,9 +1,10 @@
 from datetime import date as DateType
 
-from sqlalchemy import cast, Date, func, select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
+from app.core.timezone import APP_TZ_NAME
 from app.enums.attendance import AttendanceStatus, PresenceStatus
 from app.exceptions.attendance import DatabaseException
 from app.models.attendances import Attendance
@@ -30,7 +31,9 @@ class AttendanceRepository:
     ) -> list:
         filters = []
         if date:
-            filters.append(cast(Attendance.enter_time, Date) == date)
+            filters.append(
+                func.date(func.timezone(APP_TZ_NAME, Attendance.enter_time)) == date
+            )
         if employee_id:
             filters.append(Attendance.employee_id == employee_id)
         if status:

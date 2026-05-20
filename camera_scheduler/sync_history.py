@@ -1,12 +1,13 @@
 import asyncio
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from sqlalchemy import select
 
 load_dotenv()
 
 from app.core.database import db_helper
+from app.core.timezone import APP_TZ
 from app.models.cameras import Camera
 from app.services.dahua import DahuaClient
 from app.services.attendance import save_attendance, mark_absentees
@@ -15,7 +16,7 @@ from app.services.attendance import save_attendance, mark_absentees
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
-TZ = timezone(timedelta(hours=5))  # Toshkent UTC+5
+TZ = APP_TZ
 START_DATE = "2026-01-01"  # ВЫ МОЖЕТЕ ИЗМЕНИТЬ НАЧАЛЬНУЮ ДАТУ ЗДЕСЬ
 
 # Жестко заданные настройки камер

@@ -7,6 +7,8 @@ services:
       POSTGRES_USER: sharq
       POSTGRES_PASSWORD: sharq
       POSTGRES_DB: sharq
+      TZ: Asia/Tashkent
+      PGTZ: Asia/Tashkent
     ports:
       - "5432:5432"
     volumes:
@@ -17,22 +19,24 @@ services:
       timeout: 5s
       retries: 10
 
-  # backend:
-  #   build:
-  #     context: ./backend
-  #   container_name: sharq-backend
-  #   restart: unless-stopped
-  #   ports:
-  #     - "8000:8000"
-  #   env_file: ./backend/.env
-  #   healthcheck:
-  #     test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/docs')"]
-  #     interval: 5s
-  #     timeout: 5s
-  #     retries: 15
-  #   depends_on:
-  #     db:
-  #       condition: service_healthy
+  backend:
+    build:
+      context: ./backend
+    container_name: sharq-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      TZ: Asia/Tashkent
+    env_file: ./backend/.env
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/docs')"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+    depends_on:
+      db:
+        condition: service_healthy
 
   # sync_history:
   #   build:
@@ -44,25 +48,28 @@ services:
   #     backend:
   #       condition: service_healthy
 
-  # camera_scheduler:
-  #   build:
-  #     context: ./camera_scheduler
-  #   container_name: sharq-camera-scheduler
-  #   restart: unless-stopped
-  #   env_file: ./camera_scheduler/.env
+  camera_scheduler:
+    build:
+      context: ./camera_scheduler
+    container_name: sharq-camera-scheduler
+    restart: unless-stopped
+    environment:
+      TZ: Asia/Tashkent
+      APP_TZ: Asia/Tashkent
+    env_file: ./camera_scheduler/.env
     # depends_on:
     #   sync_history:
     #     condition: service_completed_successfully
 
-  # frontend:
-  #   build:
-  #     context: ./frontend
-  #   container_name: sharq-frontend
-  #   restart: unless-stopped
-  #   ports:
-  #     - "5173:80"
-  #   depends_on:
-  #     - backend
+  frontend:
+    build:
+      context: ./frontend
+    container_name: sharq-frontend
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
 
 volumes:
   postgres_data:

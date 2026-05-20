@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { getSchedule, recomputeStatuses, updateSchedule } from '../api/settings'
+import { PermissionGate } from '../components/PermissionGate'
 import type { WorkSchedule } from '../types/settings'
 
 function timeForInput(v: string): string {
@@ -155,13 +156,15 @@ export default function SettingsPage() {
               )}
 
               <div className="flex items-center gap-3 pt-2">
-                <button
-                  onClick={handleSave}
-                  disabled={saving || formInvalid}
-                  className="px-4 py-2 text-sm rounded-lg bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50"
-                >
-                  {saving ? 'Saqlanmoqda...' : 'Saqlash'}
-                </button>
+                <PermissionGate code="work_schedules:write">
+                  <button
+                    onClick={handleSave}
+                    disabled={saving || formInvalid}
+                    className="px-4 py-2 text-sm rounded-lg bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50"
+                  >
+                    {saving ? 'Saqlanmoqda...' : 'Saqlash'}
+                  </button>
+                </PermissionGate>
                 {savedMsg && <span className="text-xs text-green-600">{savedMsg}</span>}
                 {error && <span className="text-xs text-red-600">{error}</span>}
               </div>
@@ -180,13 +183,15 @@ export default function SettingsPage() {
                 </p>
               </div>
               <div className="flex items-center gap-3">
-                <button
-                  onClick={() => setConfirmOpen(true)}
-                  disabled={recomputing}
-                  className="px-4 py-2 text-sm rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-                >
-                  Statuslarni qayta hisoblash
-                </button>
+                <PermissionGate code="work_schedules:write">
+                  <button
+                    onClick={() => setConfirmOpen(true)}
+                    disabled={recomputing}
+                    className="px-4 py-2 text-sm rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                  >
+                    Statuslarni qayta hisoblash
+                  </button>
+                </PermissionGate>
                 {recomputeMsg && <span className="text-xs text-green-600">{recomputeMsg}</span>}
               </div>
             </div>

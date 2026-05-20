@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { cn, toYMD } from '../../lib/utils'
+import { cn, todayYMDInAppTZ, toYMD } from '../../lib/utils'
 
 const DOW = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
 const MONTHS = [
@@ -24,7 +24,7 @@ interface CalendarProps {
 }
 
 export function Calendar({ selected, onChange }: CalendarProps) {
-  const todayYMD = toYMD(new Date())
+  const todayYMD = todayYMDInAppTZ()
   const seed = selected ? new Date(selected + 'T00:00:00') : new Date()
   const [year, setYear] = useState(seed.getFullYear())
   const [month, setMonth] = useState(seed.getMonth())

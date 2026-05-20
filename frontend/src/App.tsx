@@ -1,13 +1,18 @@
-import { useState } from 'react'
-import AttendancePage from './pages/AttendancePage'
-import CameraPage from './pages/CameraPage'
-import EmployeeAttendancePage from './pages/EmployeeAttendancePage'
-import EmployeePage from './pages/EmployeePage'
-import SettingsPage from './pages/SettingsPage'
+import { BrowserRouter, Navigate, NavLink, Route, Routes, useNavigate } from 'react-router-dom'
+import { ProtectedRoute } from './components/ProtectedRoute'
+import { RequirePermission } from './components/RequirePermission'
+import { AuthProvider, useAuth } from './context/AuthContext'
 import { cn } from './lib/utils'
-import type { Employee } from './types/employee'
-
-type Tab = 'attendance' | 'cameras' | 'employees' | 'settings'
+import AttendanceRoute from './pages/AttendanceRoute'
+import CameraPage from './pages/CameraPage'
+import EmployeePage from './pages/EmployeePage'
+import ForbiddenPage from './pages/ForbiddenPage'
+import LoginPage from './pages/LoginPage'
+import ProfilePage from './pages/ProfilePage'
+import RoleDetailPage from './pages/RoleDetailPage'
+import RolesPage from './pages/RolesPage'
+import SettingsPage from './pages/SettingsPage'
+import UsersPage from './pages/UsersPage'
 
 const ClipboardIcon = () => (
   <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
@@ -34,84 +39,159 @@ const SettingsIcon = () => (
   </svg>
 )
 
-const TABS: { key: Tab; label: string; icon: React.ReactNode }[] = [
-  { key: 'attendance', label: 'Davomat',    icon: <ClipboardIcon /> },
-  { key: 'cameras',   label: 'Kameralar',   icon: <VideoIcon /> },
-  { key: 'employees', label: 'Xodimlar',    icon: <UsersIcon /> },
-  { key: 'settings',  label: 'Sozlamalar',  icon: <SettingsIcon /> },
+const ShieldIcon = () => (
+  <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+  </svg>
+)
+
+const KeyIcon = () => (
+  <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+  </svg>
+)
+
+const UserIcon = () => (
+  <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+  </svg>
+)
+
+const LogoutIcon = () => (
+  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+  </svg>
+)
+
+interface NavItem {
+  to: string
+  label: string
+  icon: React.ReactNode
+  permission?: string
+}
+
+const NAV_ITEMS: NavItem[] = [
+  { to: '/davomat',   label: 'Davomat',         icon: <ClipboardIcon />, permission: 'attendances:read' },
+  { to: '/kameralar', label: 'Kameralar',       icon: <VideoIcon />,     permission: 'cameras:read' },
+  { to: '/xodimlar',  label: 'Xodimlar',        icon: <UsersIcon />,     permission: 'employees:read' },
+  { to: '/users',     label: 'Foydalanuvchilar', icon: <UserIcon />,     permission: 'users:read' },
+  { to: '/roles',     label: 'Rollar',          icon: <ShieldIcon />,    permission: 'roles:read' },
+  { to: '/sozlamalar', label: 'Sozlamalar',     icon: <SettingsIcon />,  permission: 'work_schedules:read' },
+  { to: '/profile',   label: 'Profil',          icon: <KeyIcon /> },
 ]
 
-export default function App() {
-  const [tab, setTab] = useState<Tab>('attendance')
-  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null)
+function Sidebar() {
+  const { user, permissions, logout } = useAuth()
+  const navigate = useNavigate()
 
-  function handleViewAttendance(emp: Employee) {
-    setSelectedEmployee(emp)
-    setTab('attendance')
-  }
+  const visible = NAV_ITEMS.filter(it => !it.permission || permissions.has(it.permission))
 
-  function handleBackFromEmployee() {
-    setSelectedEmployee(null)
+  function handleLogout() {
+    logout()
+    navigate('/login', { replace: true })
   }
 
   return (
+    <aside className="w-60 flex-shrink-0 bg-slate-900 flex flex-col">
+      <div className="px-5 py-6 flex items-center gap-3">
+        <div className="w-9 h-9 bg-primary-600 rounded-xl flex items-center justify-center flex-shrink-0">
+          <span className="text-white font-bold text-base leading-none">S</span>
+        </div>
+        <div>
+          <p className="text-white font-bold text-base leading-tight">Sharq</p>
+          <p className="text-slate-500 text-xs leading-tight">Nazorat tizimi</p>
+        </div>
+      </div>
+
+      <div className="mx-5 border-t border-slate-800 mb-3" />
+
+      <nav className="flex-1 px-3 space-y-0.5 overflow-y-auto">
+        {visible.map(it => (
+          <NavLink
+            key={it.to}
+            to={it.to}
+            className={({ isActive }) => cn(
+              'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150',
+              isActive
+                ? 'bg-white/10 text-white shadow-sm'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+            )}
+          >
+            {it.icon}
+            {it.label}
+          </NavLink>
+        ))}
+      </nav>
+
+      <div className="px-3 py-3 border-t border-slate-800">
+        {user && (
+          <div className="px-2 py-2 mb-2">
+            <p className="text-sm text-white font-medium truncate">{user.full_name ?? user.username}</p>
+            <p className="text-xs text-slate-500 truncate">
+              {user.role?.name ?? '—'}
+            </p>
+          </div>
+        )}
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
+        >
+          <LogoutIcon />
+          Chiqish
+        </button>
+      </div>
+    </aside>
+  )
+}
+
+function AppShell() {
+  const navigate = useNavigate()
+  return (
     <div className="flex h-screen overflow-hidden bg-gray-50">
-
-      {/* ── Sidebar ──────────────────────────────────────────── */}
-      <aside className="w-60 flex-shrink-0 bg-slate-900 flex flex-col">
-
-        {/* Logo */}
-        <div className="px-5 py-6 flex items-center gap-3">
-          <div className="w-9 h-9 bg-primary-600 rounded-xl flex items-center justify-center flex-shrink-0">
-            <span className="text-white font-bold text-base leading-none">S</span>
-          </div>
-          <div>
-            <p className="text-white font-bold text-base leading-tight">Sharq</p>
-            <p className="text-slate-500 text-xs leading-tight">Nazorat tizimi</p>
-          </div>
-        </div>
-
-        {/* Divider */}
-        <div className="mx-5 border-t border-slate-800 mb-3" />
-
-        {/* Navigation */}
-        <nav className="flex-1 px-3 space-y-0.5">
-          {TABS.map(t => (
-            <button
-              key={t.key}
-              onClick={() => { setTab(t.key); setSelectedEmployee(null) }}
-              className={cn(
-                'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150',
-                tab === t.key
-                  ? 'bg-white/10 text-white shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
-              )}
-            >
-              {t.icon}
-              {t.label}
-            </button>
-          ))}
-        </nav>
-
-        {/* Footer */}
-        <div className="px-5 py-4 border-t border-slate-800">
-          <p className="text-xs text-slate-600">v1.0.0 · Sharq &copy; 2026</p>
-        </div>
-      </aside>
-
-      {/* ── Main content ─────────────────────────────────────── */}
+      <Sidebar />
       <main className="flex-1 overflow-y-auto">
-        {tab === 'attendance' && selectedEmployee
-          ? <EmployeeAttendancePage employee={selectedEmployee} onBack={handleBackFromEmployee} />
-          : tab === 'attendance'
-          ? <AttendancePage />
-          : tab === 'cameras'
-          ? <CameraPage />
-          : tab === 'employees'
-          ? <EmployeePage onViewAttendance={handleViewAttendance} />
-          : <SettingsPage />
-        }
+        <Routes>
+          <Route path="/davomat" element={
+            <RequirePermission code="attendances:read"><AttendanceRoute /></RequirePermission>
+          } />
+          <Route path="/kameralar" element={
+            <RequirePermission code="cameras:read"><CameraPage /></RequirePermission>
+          } />
+          <Route path="/xodimlar" element={
+            <RequirePermission code="employees:read">
+              <EmployeePage onViewAttendance={emp => navigate('/davomat', { state: { employee: emp } })} />
+            </RequirePermission>
+          } />
+          <Route path="/sozlamalar" element={
+            <RequirePermission code="work_schedules:read"><SettingsPage /></RequirePermission>
+          } />
+          <Route path="/users" element={
+            <RequirePermission code="users:read"><UsersPage /></RequirePermission>
+          } />
+          <Route path="/roles" element={
+            <RequirePermission code="roles:read"><RolesPage /></RequirePermission>
+          } />
+          <Route path="/roles/:id" element={
+            <RequirePermission code="roles:read"><RoleDetailPage /></RequirePermission>
+          } />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/forbidden" element={<ForbiddenPage />} />
+          <Route path="*" element={<Navigate to="/davomat" replace />} />
+        </Routes>
       </main>
     </div>
+  )
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/*" element={<ProtectedRoute><AppShell /></ProtectedRoute>} />
+        </Routes>
+      </AuthProvider>
+    </BrowserRouter>
   )
 }

@@ -4,7 +4,7 @@ import asyncio
 import logging
 import os
 import signal
-from datetime import datetime, timedelta, timezone
+from datetime import datetime
 
 from dotenv import load_dotenv
 
@@ -14,10 +14,11 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from app.core.database import db_helper
 from app.core.logging import setup_logging
+from app.core.timezone import APP_TZ
 from app.services.access_logs import fetch_access_logs
 from app.services.attendance import mark_absentees
 
-TZ = timezone(timedelta(hours=5))  # Toshkent UTC+5
+TZ = APP_TZ
 
 logger = logging.getLogger(__name__)
 

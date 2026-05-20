@@ -1,22 +1,29 @@
 from datetime import datetime, timedelta, timezone
 from typing import Any, Literal
 
+import bcrypt
 import jwt
-from passlib.context import CryptContext
 
 from app.core.config import settings
 
-_pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
 TokenType = Literal["access", "refresh"]
+
+_BCRYPT_MAX_BYTES = 72
+
+
+def _encode_password(plain: str) -> bytes:
+    return plain.encode("utf-8")[:_BCRYPT_MAX_BYTES]
 
 
 def hash_password(plain: str) -> str:
-    return _pwd_context.hash(plain)
+    return bcrypt.hashpw(_encode_password(plain), bcrypt.gensalt()).decode("utf-8")
 
 
 def verify_password(plain: str, hashed: str) -> bool:
-    return _pwd_context.verify(plain, hashed)
+    try:
+        return bcrypt.checkpw(_encode_password(plain), hashed.encode("utf-8"))
+    except ValueError:
+        return False
 
 
 def _create_token(

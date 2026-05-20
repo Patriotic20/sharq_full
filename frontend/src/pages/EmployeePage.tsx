@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { deleteEmployee, listEmployees, updateEmployee } from '../api/employee'
 import EmployeeModal from '../components/EmployeeModal'
+import { PermissionGate } from '../components/PermissionGate'
 import { DeleteDialog } from '../components/ui/DeleteDialog'
 import { Pagination } from '../components/ui/Pagination'
 import { useDebounce } from '../hooks/useDebounce'
@@ -151,18 +152,22 @@ export default function EmployeePage({ onViewAttendance }: Props) {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button
-                          onClick={e => { e.stopPropagation(); setEditEmployee(emp) }}
-                          className="text-xs font-medium px-3 py-1.5 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
-                        >
-                          Tahrirlash
-                        </button>
-                        <button
-                          onClick={e => { e.stopPropagation(); setDeleteId(emp.id) }}
-                          className="text-xs font-medium px-3 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
-                        >
-                          O'chirish
-                        </button>
+                        <PermissionGate code="employees:write">
+                          <button
+                            onClick={e => { e.stopPropagation(); setEditEmployee(emp) }}
+                            className="text-xs font-medium px-3 py-1.5 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
+                          >
+                            Tahrirlash
+                          </button>
+                        </PermissionGate>
+                        <PermissionGate code="employees:delete">
+                          <button
+                            onClick={e => { e.stopPropagation(); setDeleteId(emp.id) }}
+                            className="text-xs font-medium px-3 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
+                          >
+                            O'chirish
+                          </button>
+                        </PermissionGate>
                       </div>
                     </td>
                   </tr>

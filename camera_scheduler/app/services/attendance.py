@@ -1,15 +1,16 @@
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, datetime, timedelta
 
 from sqlalchemy import and_, or_, select
 
 from app.core.database import db_helper
+from app.core.timezone import APP_TZ
 from app.enums.attendance import AttendanceStatus, PresenceStatus
 from app.models.attendances import Attendance
 from app.models.employees import Employee
 from app.models.work_schedule import WorkSchedule
 from app.services.attendance_status import compute_status
 
-TZ = timezone(timedelta(hours=5))
+TZ = APP_TZ
 STATUS_OK = 1
 
 

@@ -1,5 +1,6 @@
 from datetime import datetime, time, timedelta
 
+from app.core.timezone import APP_TZ
 from app.enums.attendance import AttendanceStatus
 from app.models.work_schedule import WorkSchedule
 
@@ -30,4 +31,5 @@ def compute_status(
 
 
 def _combine(dt: datetime, t: time) -> datetime:
-    return dt.replace(hour=t.hour, minute=t.minute, second=t.second, microsecond=0)
+    local = dt.astimezone(APP_TZ) if dt.tzinfo else dt.replace(tzinfo=APP_TZ)
+    return local.replace(hour=t.hour, minute=t.minute, second=t.second, microsecond=0)

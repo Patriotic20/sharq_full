@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { deleteAttendance, listAttendances, updateAttendance } from '../api/attendance'
 import AttendanceModal from '../components/AttendanceModal'
+import { PermissionGate } from '../components/PermissionGate'
 import { Badge, PRESENCE_LABEL, PRESENCE_VARIANT, STATUS_LABEL, STATUS_VARIANT } from '../components/ui/Badge'
 import { DeleteDialog } from '../components/ui/DeleteDialog'
 import { Pagination } from '../components/ui/Pagination'
@@ -217,18 +218,22 @@ export default function EmployeeAttendancePage({ employee, onBack }: Props) {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button
-                          onClick={() => setEditItem(a)}
-                          className="text-xs font-medium px-3 py-1.5 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
-                        >
-                          Tahrirlash
-                        </button>
-                        <button
-                          onClick={() => setDeleteId(a.id)}
-                          className="text-xs font-medium px-3 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
-                        >
-                          O'chirish
-                        </button>
+                        <PermissionGate code="attendances:write">
+                          <button
+                            onClick={() => setEditItem(a)}
+                            className="text-xs font-medium px-3 py-1.5 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
+                          >
+                            Tahrirlash
+                          </button>
+                        </PermissionGate>
+                        <PermissionGate code="attendances:write">
+                          <button
+                            onClick={() => setDeleteId(a.id)}
+                            className="text-xs font-medium px-3 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
+                          >
+                            O'chirish
+                          </button>
+                        </PermissionGate>
                       </div>
                     </td>
                   </tr>
