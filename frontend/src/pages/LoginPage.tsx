@@ -41,13 +41,13 @@ export default function LoginPage() {
 
         <div className="flex flex-col items-center gap-3 mb-6">
           <img
-            src="/logo.png"
+            src="/logo.jpg"
             alt="Sharq Universiteti"
             className="w-16 h-16 rounded-2xl object-contain"
           />
           <div className="text-center">
-            <h1 className="text-lg font-semibold text-gray-900">Sharq Universiteti</h1>
-            <p className="text-xs text-gray-500 mt-0.5">Xodimlar monitoringi</p>
+            <h1 className="text-lg font-semibold text-gray-900">Sharq University</h1>
+            <p className="text-xs text-gray-500 mt-0.5">Monitoring</p>
             <p className="text-xs text-gray-400 mt-1">Tizimga kirish</p>
           </div>
         </div>

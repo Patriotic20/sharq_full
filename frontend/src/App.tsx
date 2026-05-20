@@ -95,13 +95,13 @@ function Sidebar() {
     <aside className="w-60 flex-shrink-0 bg-slate-900 flex flex-col">
       <div className="px-5 py-6 flex items-center gap-3">
         <img
-          src="/logo.png"
+          src="/logo.jpg"
           alt="Sharq Universiteti"
           className="w-9 h-9 rounded-xl flex-shrink-0 object-contain bg-white/5"
         />
         <div>
-          <p className="text-white font-bold text-base leading-tight">Sharq Universiteti</p>
-          <p className="text-slate-500 text-xs leading-tight">Xodimlar monitoringi</p>
+          <p className="text-white font-bold text-base leading-tight">Sharq University</p>
+          <p className="text-slate-500 text-xs leading-tight">Monitoring</p>
         </div>
       </div>
 
