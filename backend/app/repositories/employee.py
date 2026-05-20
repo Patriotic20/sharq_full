@@ -40,6 +40,8 @@ class EmployeeRepository:
         first_name: str | None,
         last_name: str | None,
         camera_user_id: str | None,
+        department_id: int | None = None,
+        order: str = "desc",
     ) -> tuple[list[Employee], int]:
         query = select(Employee)
 
@@ -49,19 +51,24 @@ class EmployeeRepository:
             query = query.where(Employee.last_name.ilike(f"%{last_name}%"))
         if camera_user_id:
             query = query.where(Employee.camera_user_id.ilike(f"%{camera_user_id}%"))
+        if department_id is not None:
+            query = query.where(Employee.department_id == department_id)
 
         count_result = await self.session.execute(
             select(func.count()).select_from(query.subquery())
         )
         total = count_result.scalar_one()
 
-        result = await self.session.execute(query.limit(limit).offset(offset))
-        items = list(result.scalars().all())
+        order_col = Employee.created_at.asc() if order == "asc" else Employee.created_at.desc()
+        result = await self.session.execute(
+            query.order_by(order_col).limit(limit).offset(offset)
+        )
+        items = list(result.scalars().unique().all())
 
         return items, total
 
     async def update(self, employee: Employee, data: EmployeeUpdate) -> Employee:
-        for field, value in data.model_dump(exclude_none=True).items():
+        for field, value in data.model_dump(exclude_unset=True).items():
             setattr(employee, field, value)
         try:
             await self.session.commit()

@@ -1,3 +1,4 @@
+import { Key, Pencil, Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { listRoles } from '../api/roles'
 import {
@@ -11,6 +12,7 @@ import PasswordChangeModal from '../components/PasswordChangeModal'
 import { PermissionGate } from '../components/PermissionGate'
 import UserModal from '../components/UserModal'
 import { DeleteDialog } from '../components/ui/DeleteDialog'
+import { IconButton } from '../components/ui/IconButton'
 import { Pagination } from '../components/ui/Pagination'
 import { useDebounce } from '../hooks/useDebounce'
 import type { Role } from '../types/role'
@@ -148,8 +150,11 @@ export default function UsersPage() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
-                {['ID', 'Foydalanuvchi', "To'liq ism", 'Rol', 'Holati', 'Yaratilgan', ''].map((h, i) => (
-                  <th key={i} className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                {['ID', 'Foydalanuvchi', "To'liq ism", 'Rol', 'Holati', 'Yaratilgan', ''].map((h, i, arr) => (
+                  <th
+                    key={i}
+                    className={`px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider ${i === arr.length - 1 ? 'text-right' : 'text-left'}`}
+                  >
                     {h}
                   </th>
                 ))}
@@ -187,30 +192,28 @@ export default function UsersPage() {
                       {new Date(u.created_at).toLocaleDateString('uz-UZ')}
                     </td>
                     <td className="px-4 py-3">
-                      <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex gap-1 justify-end">
                         <PermissionGate code="users:write">
-                          <button
+                          <IconButton
+                            icon={Pencil}
+                            label="Редактировать"
                             onClick={() => setEditUser(u)}
-                            className="text-xs font-medium px-3 py-1.5 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200"
-                          >
-                            Tahrirlash
-                          </button>
+                          />
                         </PermissionGate>
                         <PermissionGate code="users:write">
-                          <button
+                          <IconButton
+                            icon={Key}
+                            label="Сменить пароль"
                             onClick={() => setPasswordUser(u)}
-                            className="text-xs font-medium px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200"
-                          >
-                            Parol
-                          </button>
+                          />
                         </PermissionGate>
                         <PermissionGate code="users:delete">
-                          <button
+                          <IconButton
+                            icon={Trash2}
+                            label="Удалить"
+                            variant="danger"
                             onClick={() => setDeleteId(u.id)}
-                            className="text-xs font-medium px-3 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100"
-                          >
-                            O'chirish
-                          </button>
+                          />
                         </PermissionGate>
                       </div>
                     </td>
@@ -244,8 +247,8 @@ export default function UsersPage() {
       )}
       {deleteId !== null && (
         <DeleteDialog
-          title="Foydalanuvchini o'chirish"
-          description={`#${deleteId} foydalanuvchini o'chirishni tasdiqlaysizmi?`}
+          title="Удалить пользователя"
+          description={`Удалить пользователя #${deleteId}?`}
           loading={deleteLoading}
           onConfirm={handleDelete}
           onCancel={() => setDeleteId(null)}

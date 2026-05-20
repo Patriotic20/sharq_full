@@ -7,6 +7,8 @@ export interface EmployeeListParams {
   first_name?: string
   last_name?: string
   camera_user_id?: string
+  department_id?: number
+  order?: 'asc' | 'desc'
 }
 
 export function listEmployees(params: EmployeeListParams = {}): Promise<EmployeeListResponse> {
@@ -16,6 +18,8 @@ export function listEmployees(params: EmployeeListParams = {}): Promise<Employee
   if (params.first_name) q.set('first_name', params.first_name)
   if (params.last_name) q.set('last_name', params.last_name)
   if (params.camera_user_id) q.set('camera_user_id', params.camera_user_id)
+  if (params.department_id !== undefined) q.set('department_id', String(params.department_id))
+  if (params.order) q.set('order', params.order)
   return request(`/employees/?${q}`)
 }
 

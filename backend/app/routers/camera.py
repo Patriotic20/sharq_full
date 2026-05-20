@@ -83,7 +83,7 @@ async def get_camera(
 @router.patch(
     "/{camera_id}",
     response_model=CameraRead,
-    dependencies=[Depends(require_permission("cameras:write"))],
+    dependencies=[Depends(require_permission("cameras:update"))],
 )
 async def update_camera(
     camera_id: int,
@@ -99,7 +99,7 @@ async def update_camera(
 @router.delete(
     "/{camera_id}",
     status_code=204,
-    dependencies=[Depends(require_permission("cameras:write"))],
+    dependencies=[Depends(require_permission("cameras:delete"))],
 )
 async def delete_camera(
     camera_id: int,

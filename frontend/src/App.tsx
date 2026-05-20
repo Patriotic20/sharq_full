@@ -5,9 +5,13 @@ import { AuthProvider, useAuth } from './context/AuthContext'
 import { cn } from './lib/utils'
 import AttendanceRoute from './pages/AttendanceRoute'
 import CameraPage from './pages/CameraPage'
+import DepartmentDetailPage from './pages/DepartmentDetailPage'
+import DepartmentsPage from './pages/DepartmentsPage'
 import EmployeePage from './pages/EmployeePage'
 import ForbiddenPage from './pages/ForbiddenPage'
+import GroupsPage from './pages/GroupsPage'
 import LoginPage from './pages/LoginPage'
+import PermissionsPage from './pages/PermissionsPage'
 import ProfilePage from './pages/ProfilePage'
 import RoleDetailPage from './pages/RoleDetailPage'
 import RolesPage from './pages/RolesPage'
@@ -57,6 +61,18 @@ const UserIcon = () => (
   </svg>
 )
 
+const BuildingIcon = () => (
+  <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+  </svg>
+)
+
+const GroupIcon = () => (
+  <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+  </svg>
+)
+
 const LogoutIcon = () => (
   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -74,8 +90,11 @@ const NAV_ITEMS: NavItem[] = [
   { to: '/davomat',   label: 'Davomat',         icon: <ClipboardIcon />, permission: 'attendances:read' },
   { to: '/kameralar', label: 'Kameralar',       icon: <VideoIcon />,     permission: 'cameras:read' },
   { to: '/xodimlar',  label: 'Xodimlar',        icon: <UsersIcon />,     permission: 'employees:read' },
+  { to: '/bolimlar',  label: "Bo'limlar",       icon: <BuildingIcon />,  permission: 'departments:read' },
+  { to: '/guruhlar',  label: 'Guruhlar',        icon: <GroupIcon />,     permission: 'groups:read' },
   { to: '/users',     label: 'Foydalanuvchilar', icon: <UserIcon />,     permission: 'users:read' },
   { to: '/roles',     label: 'Rollar',          icon: <ShieldIcon />,    permission: 'roles:read' },
+  { to: '/permissions', label: 'Ruxsatlar',     icon: <KeyIcon />,       permission: 'permissions:read' },
   { to: '/sozlamalar', label: 'Sozlamalar',     icon: <SettingsIcon />,  permission: 'work_schedules:read' },
   { to: '/profile',   label: 'Profil',          icon: <KeyIcon /> },
 ]
@@ -164,6 +183,15 @@ function AppShell() {
               <EmployeePage onViewAttendance={emp => navigate('/davomat', { state: { employee: emp } })} />
             </RequirePermission>
           } />
+          <Route path="/bolimlar" element={
+            <RequirePermission code="departments:read"><DepartmentsPage /></RequirePermission>
+          } />
+          <Route path="/bolimlar/:id" element={
+            <RequirePermission code="departments:read"><DepartmentDetailPage /></RequirePermission>
+          } />
+          <Route path="/guruhlar" element={
+            <RequirePermission code="groups:read"><GroupsPage /></RequirePermission>
+          } />
           <Route path="/sozlamalar" element={
             <RequirePermission code="work_schedules:read"><SettingsPage /></RequirePermission>
           } />
@@ -175,6 +203,9 @@ function AppShell() {
           } />
           <Route path="/roles/:id" element={
             <RequirePermission code="roles:read"><RoleDetailPage /></RequirePermission>
+          } />
+          <Route path="/permissions" element={
+            <RequirePermission code="permissions:read"><PermissionsPage /></RequirePermission>
           } />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/forbidden" element={<ForbiddenPage />} />

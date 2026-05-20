@@ -1,9 +1,11 @@
+import { Eye, Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { createRole, deleteRole, listRoles } from '../api/roles'
 import { PermissionGate } from '../components/PermissionGate'
 import RoleModal from '../components/RoleModal'
 import { DeleteDialog } from '../components/ui/DeleteDialog'
+import { IconButton } from '../components/ui/IconButton'
 import { Pagination } from '../components/ui/Pagination'
 import type { RoleCreate, RoleListResponse } from '../types/role'
 
@@ -85,8 +87,11 @@ export default function RolesPage() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
-                {['ID', 'Nomi', 'Tavsif', ''].map((h, i) => (
-                  <th key={i} className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                {['ID', 'Nomi', 'Tavsif', ''].map((h, i, arr) => (
+                  <th
+                    key={i}
+                    className={`px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider ${i === arr.length - 1 ? 'text-right' : 'text-left'}`}
+                  >
                     {h}
                   </th>
                 ))}
@@ -115,20 +120,19 @@ export default function RolesPage() {
                       {r.description ?? <span className="text-gray-200">—</span>}
                     </td>
                     <td className="px-4 py-3">
-                      <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Link
+                      <div className="flex gap-1 justify-end">
+                        <IconButton
+                          icon={Eye}
+                          label="Просмотр"
                           to={`/roles/${r.id}`}
-                          className="text-xs font-medium px-3 py-1.5 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200"
-                        >
-                          Ko'rish
-                        </Link>
+                        />
                         <PermissionGate code="roles:delete">
-                          <button
+                          <IconButton
+                            icon={Trash2}
+                            label="Удалить"
+                            variant="danger"
                             onClick={() => setDeleteId(r.id)}
-                            className="text-xs font-medium px-3 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100"
-                          >
-                            O'chirish
-                          </button>
+                          />
                         </PermissionGate>
                       </div>
                     </td>
@@ -147,8 +151,8 @@ export default function RolesPage() {
       )}
       {deleteId !== null && (
         <DeleteDialog
-          title="Rolni o'chirish"
-          description={`#${deleteId} rolni o'chirishni tasdiqlaysizmi?`}
+          title="Удалить роль"
+          description={`Удалить роль #${deleteId}?`}
           loading={deleteLoading}
           onConfirm={handleDelete}
           onCancel={() => setDeleteId(null)}

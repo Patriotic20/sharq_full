@@ -17,14 +17,14 @@ export function DeleteDialog({ title, description, loading, onConfirm, onCancel 
             onClick={onCancel}
             className="px-4 py-2 text-sm rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50"
           >
-            Bekor qilish
+            Отмена
           </button>
           <button
             onClick={onConfirm}
             disabled={loading}
             className="px-4 py-2 text-sm rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
           >
-            {loading ? "O'chirilmoqda..." : "O'chirish"}
+            {loading ? 'Удаление...' : 'Удалить'}
           </button>
         </div>
       </div>

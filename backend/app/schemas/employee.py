@@ -1,7 +1,10 @@
 from math import ceil
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
+
+from app.schemas.department import DepartmentBrief
 
 
 class PaginationParams(BaseModel):
@@ -21,6 +24,8 @@ class EmployeeSearchParams(BaseModel):
     first_name: str | None = None
     last_name: str | None = None
     camera_user_id: str | None = None
+    department_id: int | None = None
+    order: Literal["asc", "desc"] = "desc"
 
 
 class EmployeeCreate(BaseModel):
@@ -30,6 +35,7 @@ class EmployeeCreate(BaseModel):
     last_name: str = Field(min_length=1, max_length=50)
     middle_name: str = Field(min_length=1, max_length=50)
     camera_user_id: str | None = Field(default=None, max_length=50)
+    department_id: int | None = None
 
 
 class EmployeeUpdate(BaseModel):
@@ -39,6 +45,7 @@ class EmployeeUpdate(BaseModel):
     last_name: str | None = Field(default=None, min_length=1, max_length=50)
     middle_name: str | None = Field(default=None, min_length=1, max_length=50)
     camera_user_id: str | None = Field(default=None, max_length=50)
+    department_id: int | None = None
 
 
 class EmployeeRead(BaseModel):
@@ -49,6 +56,8 @@ class EmployeeRead(BaseModel):
     last_name: str
     middle_name: str
     camera_user_id: str | None
+    department_id: int | None
+    department: DepartmentBrief | None = None
     created_at: datetime
     updated_at: datetime
 

@@ -156,7 +156,7 @@ export default function SettingsPage() {
               )}
 
               <div className="flex items-center gap-3 pt-2">
-                <PermissionGate code="work_schedules:write">
+                <PermissionGate code="work_schedules:update">
                   <button
                     onClick={handleSave}
                     disabled={saving || formInvalid}
@@ -183,7 +183,7 @@ export default function SettingsPage() {
                 </p>
               </div>
               <div className="flex items-center gap-3">
-                <PermissionGate code="work_schedules:write">
+                <PermissionGate code="work_schedules:update">
                   <button
                     onClick={() => setConfirmOpen(true)}
                     disabled={recomputing}

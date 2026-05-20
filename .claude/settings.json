@@ -37,7 +37,16 @@
       "Bash(curl -s http://localhost:8000/openapi.json)",
       "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(list\\(d.get\\('paths',{}\\).keys\\(\\)\\)[:10]\\)\")",
       "Bash(curl -sI http://localhost:5173/api/v1/cameras/)",
-      "Bash(curl -sI http://localhost:8000/api/v1/cameras/)"
+      "Bash(curl -sI http://localhost:8000/api/v1/cameras/)",
+      "Bash(grep -E \"\\\\.py$\")",
+      "Bash(npx tsc *)",
+      "Bash(npm install *)",
+      "Bash(echo \"exit: $?\")",
+      "Bash(python -c \"from app.main import app; print\\('ok'\\)\")",
+      "Bash(python -m py_compile app/models/department.py app/models/employees.py app/schemas/department.py app/schemas/employee.py app/repositories/department.py app/repositories/employee.py app/services/department.py app/services/employee.py app/routers/departments.py app/routers/employees.py app/exceptions/department.py app/main.py migrations/versions/b2c3d4e5f6a7_add_departments.py)",
+      "Bash(python -c \"from app.core.permissions import PERMISSIONS, ROLE_PRESETS; print\\(f'PERMISSIONS: {len\\(PERMISSIONS\\)} codes'\\); codes = {p.code for p in PERMISSIONS}; print\\('All preset codes valid:', all\\(c in codes for preset in ROLE_PRESETS.values\\(\\) for c in preset\\)\\); import ast; ast.parse\\(open\\('app/core/seed_rbac.py'\\).read\\(\\)\\); print\\('seed_rbac.py parses OK'\\)\")",
+      "Bash(python -m py_compile app/models/group.py app/schemas/group.py app/repositories/group.py app/services/group.py app/routers/groups.py app/exceptions/group.py app/main.py migrations/versions/c3d4e5f6a7b8_add_groups.py app/core/permissions.py)",
+      "Bash(python -c \"import json,sys; spec=json.load\\(sys.stdin\\); paths=[p for p in spec['paths'] if '/groups' in p]; print\\('\\\\n'.join\\(paths\\)\\)\")"
     ],
     "additionalDirectories": [
       "/home/bekzod/Projects/Production/kdkdkdkd/lllll/.git",

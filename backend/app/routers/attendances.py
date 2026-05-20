@@ -71,7 +71,7 @@ async def get_attendance(
 @router.patch(
     "/{attendance_id}",
     response_model=AttendanceRead,
-    dependencies=[Depends(require_permission("attendances:write"))],
+    dependencies=[Depends(require_permission("attendances:update"))],
 )
 async def update_attendance(
     attendance_id: int,
@@ -87,7 +87,7 @@ async def update_attendance(
 @router.delete(
     "/{attendance_id}",
     status_code=204,
-    dependencies=[Depends(require_permission("attendances:write"))],
+    dependencies=[Depends(require_permission("attendances:delete"))],
 )
 async def delete_attendance(
     attendance_id: int,

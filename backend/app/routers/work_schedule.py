@@ -37,7 +37,7 @@ async def get_work_schedule(
 @router.patch(
     "/",
     response_model=WorkScheduleRead,
-    dependencies=[Depends(require_permission("work_schedules:write"))],
+    dependencies=[Depends(require_permission("work_schedules:update"))],
 )
 async def update_work_schedule(
     data: WorkScheduleUpdate,
@@ -57,7 +57,7 @@ async def update_work_schedule(
 @router.post(
     "/recompute",
     response_model=RecomputeResult,
-    dependencies=[Depends(require_permission("work_schedules:write"))],
+    dependencies=[Depends(require_permission("work_schedules:update"))],
 )
 async def recompute_statuses(
     session: AsyncSession = Depends(get_session),

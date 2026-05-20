@@ -8,6 +8,8 @@ __all__ = [
     "Role",
     "Permission",
     "RolePermission",
+    "Department",
+    "Group",
 ]
 
 from .base import Base
@@ -19,3 +21,5 @@ from .user import User
 from .role import Role
 from .permission import Permission
 from .role_permission import RolePermission
+from .department import Department
+from .group import Group

@@ -98,7 +98,7 @@ async def get_role_with_permissions(
 @router.patch(
     "/{role_id}",
     response_model=RoleRead,
-    dependencies=[Depends(require_permission("roles:write"))],
+    dependencies=[Depends(require_permission("roles:update"))],
 )
 async def update_role(
     role_id: int,

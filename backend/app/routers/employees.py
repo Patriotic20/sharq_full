@@ -1,12 +1,16 @@
+from typing import Literal
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import get_session, require_permission
+from app.exceptions.department import DepartmentNotFoundException
 from app.exceptions.employee import (
     DatabaseException,
     EmployeeNotFoundException,
     EmployeeAlreadyExistsException,
 )
+from app.repositories.department import DepartmentRepository
 from app.repositories.employee import EmployeeRepository
 from app.schemas.employee import (
     EmployeeListResponse,
@@ -23,10 +27,18 @@ router = APIRouter(prefix="/employees", tags=["employees"])
 def get_employee_service(
     session: AsyncSession = Depends(get_session),
 ) -> EmployeeService:
-    return EmployeeService(EmployeeRepository(session))
+    return EmployeeService(
+        EmployeeRepository(session),
+        DepartmentRepository(session),
+    )
 
 
-def _handle(exc: EmployeeNotFoundException | EmployeeAlreadyExistsException | DatabaseException) -> None:
+def _handle(
+    exc: EmployeeNotFoundException
+    | EmployeeAlreadyExistsException
+    | DepartmentNotFoundException
+    | DatabaseException,
+) -> None:
     raise HTTPException(status_code=exc.status_code, detail=exc.detail)
 
 
@@ -41,10 +53,18 @@ async def list_employees(
     first_name: str | None = None,
     last_name: str | None = None,
     camera_user_id: str | None = None,
+    department_id: int | None = None,
+    order: Literal["asc", "desc"] = "desc",
     service: EmployeeService = Depends(get_employee_service),
 ) -> EmployeeListResponse:
     pagination = PaginationParams(page=page, size=size)
-    search = EmployeeSearchParams(first_name=first_name, last_name=last_name, camera_user_id=camera_user_id)
+    search = EmployeeSearchParams(
+        first_name=first_name,
+        last_name=last_name,
+        camera_user_id=camera_user_id,
+        department_id=department_id,
+        order=order,
+    )
     return await service.list(pagination, search)
 
 
@@ -66,7 +86,7 @@ async def get_employee(
 @router.patch(
     "/{employee_id}",
     response_model=EmployeeRead,
-    dependencies=[Depends(require_permission("employees:write"))],
+    dependencies=[Depends(require_permission("employees:update"))],
 )
 async def update_employee(
     employee_id: int,
@@ -75,7 +95,12 @@ async def update_employee(
 ) -> EmployeeRead:
     try:
         return await service.update(employee_id, data)
-    except (EmployeeNotFoundException, EmployeeAlreadyExistsException, DatabaseException) as e:
+    except (
+        EmployeeNotFoundException,
+        EmployeeAlreadyExistsException,
+        DepartmentNotFoundException,
+        DatabaseException,
+    ) as e:
         _handle(e)
 
 

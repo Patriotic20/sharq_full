@@ -1,6 +1,6 @@
 import logging
 
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
@@ -18,6 +18,19 @@ logger = logging.getLogger(__name__)
 async def _seed_permissions(session: AsyncSession) -> dict[str, int]:
     repo = PermissionRepository(session)
     await repo.bulk_upsert([(p.code, p.description) for p in PERMISSIONS])
+
+    current_codes = {p.code for p in PERMISSIONS}
+    obsolete = await session.execute(
+        select(Permission.code).where(Permission.code.notin_(current_codes))
+    )
+    obsolete_codes = [row[0] for row in obsolete.all()]
+    if obsolete_codes:
+        await session.execute(
+            delete(Permission).where(Permission.code.in_(obsolete_codes))
+        )
+        await session.commit()
+        logger.info("Pruned obsolete permissions: %s", obsolete_codes)
+
     permissions = await repo.list_all()
     return {p.code: p.id for p in permissions}
 

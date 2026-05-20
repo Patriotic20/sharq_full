@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react'
+import { listDepartments } from '../api/department'
+import type { Department } from '../types/department'
 import type { Employee, EmployeeUpdate } from '../types/employee'
 
 interface Props {
@@ -8,7 +10,14 @@ interface Props {
 }
 
 export default function EmployeeModal({ employee, onClose, onSubmit }: Props) {
-  const [form, setForm] = useState({ first_name: '', last_name: '', middle_name: '', camera_user_id: '' })
+  const [form, setForm] = useState({
+    first_name: '',
+    last_name: '',
+    middle_name: '',
+    camera_user_id: '',
+    department_id: '' as string,
+  })
+  const [departments, setDepartments] = useState<Department[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -18,8 +27,15 @@ export default function EmployeeModal({ employee, onClose, onSubmit }: Props) {
       last_name:      employee.last_name,
       middle_name:    employee.middle_name,
       camera_user_id: employee.camera_user_id ?? '',
+      department_id:  employee.department_id ? String(employee.department_id) : '',
     })
   }, [employee])
+
+  useEffect(() => {
+    listDepartments({ page: 1, size: 100, order: 'asc' })
+      .then(res => setDepartments(res.items))
+      .catch(() => setDepartments([]))
+  }, [])
 
   const set = (field: keyof typeof form, value: string) => setForm(f => ({ ...f, [field]: value }))
 
@@ -33,6 +49,7 @@ export default function EmployeeModal({ employee, onClose, onSubmit }: Props) {
         last_name:      form.last_name      || undefined,
         middle_name:    form.middle_name    || undefined,
         camera_user_id: form.camera_user_id || null,
+        department_id:  form.department_id ? Number(form.department_id) : null,
       }
       await onSubmit(payload)
       onClose()
@@ -78,6 +95,22 @@ export default function EmployeeModal({ employee, onClose, onSubmit }: Props) {
             <input className={fieldClass} value={form.camera_user_id}
               onChange={e => set('camera_user_id', e.target.value)}
               placeholder="Bo'sh qoldirsa o'chiriladi" />
+          </div>
+
+          <div>
+            <label className={labelClass}>
+              Bo'lim <span className="text-gray-400 font-normal">(ixtiyoriy)</span>
+            </label>
+            <select
+              className={fieldClass}
+              value={form.department_id}
+              onChange={e => set('department_id', e.target.value)}
+            >
+              <option value="">— Bo'limsiz —</option>
+              {departments.map(d => (
+                <option key={d.id} value={d.id}>{d.name}</option>
+              ))}
+            </select>
           </div>
 
           {error && <p className="text-sm text-red-600">{error}</p>}

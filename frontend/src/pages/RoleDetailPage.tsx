@@ -145,7 +145,7 @@ export default function RoleDetailPage() {
             <div className="flex items-center gap-3">
               {savedMsg && <span className="text-xs text-emerald-600">{savedMsg}</span>}
               <PermissionGate
-                code="role_permissions:write"
+                code="role_permissions:update"
                 fallback={
                   <span className="text-xs text-gray-400">Saqlash uchun ruxsat yo'q</span>
                 }

@@ -89,7 +89,7 @@ async def get_user(
 @router.patch(
     "/{user_id}",
     response_model=UserRead,
-    dependencies=[Depends(require_permission("users:write"))],
+    dependencies=[Depends(require_permission("users:update"))],
 )
 async def update_user(
     user_id: int,
@@ -105,7 +105,7 @@ async def update_user(
 @router.post(
     "/{user_id}/password",
     status_code=204,
-    dependencies=[Depends(require_permission("users:write"))],
+    dependencies=[Depends(require_permission("users:update"))],
 )
 async def change_password(
     user_id: int,

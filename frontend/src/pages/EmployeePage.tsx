@@ -1,8 +1,10 @@
+import { Pencil, Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { deleteEmployee, listEmployees, updateEmployee } from '../api/employee'
 import EmployeeModal from '../components/EmployeeModal'
 import { PermissionGate } from '../components/PermissionGate'
 import { DeleteDialog } from '../components/ui/DeleteDialog'
+import { IconButton } from '../components/ui/IconButton'
 import { Pagination } from '../components/ui/Pagination'
 import { useDebounce } from '../hooks/useDebounce'
 import type { Employee, EmployeeListResponse, EmployeeUpdate } from '../types/employee'
@@ -14,7 +16,7 @@ interface Props {
 function SkeletonRow() {
   return (
     <tr>
-      {[28, 140, 100, 80, 72, 60].map((w, i) => (
+      {[28, 140, 100, 100, 80, 72, 60].map((w, i) => (
         <td key={i} className="px-4 py-3">
           <div className="h-4 bg-gray-100 rounded animate-pulse" style={{ width: w }} />
         </td>
@@ -28,6 +30,7 @@ export default function EmployeePage({ onViewAttendance }: Props) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [page, setPage] = useState(1)
+  const [order, setOrder] = useState<'asc' | 'desc'>('desc')
   const [searchInput, setSearchInput] = useState({ first_name: '', last_name: '', camera_user_id: '' })
   const search = useDebounce(searchInput)
 
@@ -39,14 +42,14 @@ export default function EmployeePage({ onViewAttendance }: Props) {
     setLoading(true)
     setError('')
     try {
-      const res = await listEmployees({ page, size: 10, ...search })
+      const res = await listEmployees({ page, size: 10, order, ...search })
       setData(res)
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Xatolik yuz berdi')
     } finally {
       setLoading(false)
     }
-  }, [page, search])
+  }, [page, order, search])
 
   useEffect(() => { load() }, [load])
 
@@ -99,6 +102,14 @@ export default function EmployeePage({ onViewAttendance }: Props) {
             value={searchInput.camera_user_id}
             onChange={e => { setPage(1); setSearchInput(s => ({ ...s, camera_user_id: e.target.value })) }}
           />
+          <select
+            className="border border-gray-200 rounded-xl px-3 py-2 text-sm bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition-colors"
+            value={order}
+            onChange={e => { setPage(1); setOrder(e.target.value as 'asc' | 'desc') }}
+          >
+            <option value="desc">Yangi avval</option>
+            <option value="asc">Eski avval</option>
+          </select>
         </div>
 
         {/* Table */}
@@ -110,8 +121,11 @@ export default function EmployeePage({ onViewAttendance }: Props) {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
-                {['ID', "To'liq ism", 'Otasining ismi', 'Kamera ID', 'Yaratilgan', ''].map((h, i) => (
-                  <th key={i} className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                {['ID', "To'liq ism", 'Otasining ismi', "Bo'lim", 'Kamera ID', 'Yaratilgan', ''].map((h, i, arr) => (
+                  <th
+                    key={i}
+                    className={`px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider ${i === arr.length - 1 ? 'text-right' : 'text-left'}`}
+                  >
                     {h}
                   </th>
                 ))}
@@ -122,7 +136,7 @@ export default function EmployeePage({ onViewAttendance }: Props) {
                 Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} />)
               ) : data?.items.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-16 text-center">
+                  <td colSpan={7} className="px-4 py-16 text-center">
                     <div className="inline-flex flex-col items-center gap-2">
                       <span className="text-3xl">👤</span>
                       <p className="text-sm text-gray-400">Xodimlar topilmadi</p>
@@ -142,6 +156,12 @@ export default function EmployeePage({ onViewAttendance }: Props) {
                     </td>
                     <td className="px-4 py-3 text-gray-500">{emp.middle_name}</td>
                     <td className="px-4 py-3">
+                      {emp.department
+                        ? <span className="text-xs bg-primary-50 text-primary-700 px-2 py-0.5 rounded-lg">{emp.department.name}</span>
+                        : <span className="text-gray-200 select-none">—</span>
+                      }
+                    </td>
+                    <td className="px-4 py-3">
                       {emp.camera_user_id
                         ? <span className="font-mono text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-lg">{emp.camera_user_id}</span>
                         : <span className="text-gray-200 select-none">—</span>
@@ -151,22 +171,21 @@ export default function EmployeePage({ onViewAttendance }: Props) {
                       {new Date(emp.created_at).toLocaleDateString('uz-UZ')}
                     </td>
                     <td className="px-4 py-3">
-                      <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <PermissionGate code="employees:write">
-                          <button
+                      <div className="flex gap-1 justify-end">
+                        <PermissionGate code="employees:update">
+                          <IconButton
+                            icon={Pencil}
+                            label="Редактировать"
                             onClick={e => { e.stopPropagation(); setEditEmployee(emp) }}
-                            className="text-xs font-medium px-3 py-1.5 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
-                          >
-                            Tahrirlash
-                          </button>
+                          />
                         </PermissionGate>
                         <PermissionGate code="employees:delete">
-                          <button
+                          <IconButton
+                            icon={Trash2}
+                            label="Удалить"
+                            variant="danger"
                             onClick={e => { e.stopPropagation(); setDeleteId(emp.id) }}
-                            className="text-xs font-medium px-3 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
-                          >
-                            O'chirish
-                          </button>
+                          />
                         </PermissionGate>
                       </div>
                     </td>
@@ -190,8 +209,8 @@ export default function EmployeePage({ onViewAttendance }: Props) {
 
       {deleteId !== null && (
         <DeleteDialog
-          title="Xodimni o'chirish"
-          description={`#${deleteId} xodimni o'chirishni tasdiqlaysizmi? Bu amalni ortga qaytarib bo'lmaydi.`}
+          title="Удалить сотрудника"
+          description={`Удалить сотрудника #${deleteId}? Это действие необратимо.`}
           loading={deleteLoading}
           onConfirm={handleDelete}
           onCancel={() => setDeleteId(null)}

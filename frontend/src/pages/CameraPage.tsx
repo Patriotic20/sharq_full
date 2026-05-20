@@ -1,9 +1,11 @@
+import { Pencil, Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { createCamera, deleteCamera, listCameras, updateCamera } from '../api/camera'
 import CameraModal from '../components/CameraModal'
 import { PermissionGate } from '../components/PermissionGate'
 import { Badge, CAMERA_TYPE_LABEL, CAMERA_TYPE_VARIANT } from '../components/ui/Badge'
 import { DeleteDialog } from '../components/ui/DeleteDialog'
+import { IconButton } from '../components/ui/IconButton'
 import { Pagination } from '../components/ui/Pagination'
 import { useDebounce } from '../hooks/useDebounce'
 import type { Camera, CameraCreate, CameraListResponse, CameraUpdate } from '../types/camera'
@@ -162,22 +164,21 @@ export default function CameraPage() {
                       {new Date(camera.created_at).toLocaleDateString('uz-UZ')}
                     </td>
                     <td className="px-4 py-3">
-                      <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <PermissionGate code="cameras:write">
-                          <button
+                      <div className="flex gap-1 justify-end">
+                        <PermissionGate code="cameras:update">
+                          <IconButton
+                            icon={Pencil}
+                            label="Tahrirlash"
                             onClick={() => openEdit(camera)}
-                            className="text-xs font-medium px-3 py-1.5 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
-                          >
-                            Tahrirlash
-                          </button>
+                          />
                         </PermissionGate>
-                        <PermissionGate code="cameras:write">
-                          <button
+                        <PermissionGate code="cameras:delete">
+                          <IconButton
+                            icon={Trash2}
+                            label="O'chirish"
+                            variant="danger"
                             onClick={() => setDeleteId(camera.id)}
-                            className="text-xs font-medium px-3 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
-                          >
-                            O'chirish
-                          </button>
+                          />
                         </PermissionGate>
                       </div>
                     </td>

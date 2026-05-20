@@ -33,7 +33,7 @@ def _handle(
 @router.put(
     "/",
     response_model=RoleWithPermissionsRead,
-    dependencies=[Depends(require_permission("role_permissions:write"))],
+    dependencies=[Depends(require_permission("role_permissions:update"))],
 )
 async def replace_role_permissions(
     role_id: int,
@@ -49,7 +49,7 @@ async def replace_role_permissions(
 @router.post(
     "/assign",
     response_model=RoleWithPermissionsRead,
-    dependencies=[Depends(require_permission("role_permissions:write"))],
+    dependencies=[Depends(require_permission("role_permissions:update"))],
 )
 async def assign_role_permissions(
     role_id: int,
@@ -65,7 +65,7 @@ async def assign_role_permissions(
 @router.post(
     "/revoke",
     response_model=RoleWithPermissionsRead,
-    dependencies=[Depends(require_permission("role_permissions:write"))],
+    dependencies=[Depends(require_permission("role_permissions:delete"))],
 )
 async def revoke_role_permissions(
     role_id: int,
