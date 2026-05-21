@@ -1,6 +1,6 @@
 import { Eye, Pencil, Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import {
   createDepartment,
   deleteDepartment,
@@ -33,6 +33,7 @@ function SkeletonRow() {
 }
 
 export default function DepartmentsPage() {
+  const navigate = useNavigate()
   const [data, setData] = useState<DepartmentListResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -146,13 +147,17 @@ export default function DepartmentsPage() {
                 </tr>
               ) : (
                 data?.items.map(d => (
-                  <tr key={d.id} className="hover:bg-primary-50/50 group transition-colors">
+                  <tr
+                    key={d.id}
+                    onClick={() => navigate(`/bolimlar/${d.id}`)}
+                    className="hover:bg-primary-50/50 group transition-colors cursor-pointer"
+                  >
                     <td className="px-4 py-3 text-gray-400 font-mono text-xs">#{d.id}</td>
-                    <td className="px-4 py-3 font-semibold text-gray-900">
-                      <Link to={`/bolimlar/${d.id}`} className="hover:text-primary-600">{d.name}</Link>
+                    <td className="px-4 py-3 font-semibold text-gray-900 group-hover:text-primary-600">
+                      {d.name}
                     </td>
                     <td className="px-4 py-3 text-gray-500 tabular-nums">{d.employees_count}</td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
                       <div className="flex gap-1 justify-end">
                         <IconButton
                           icon={Eye}

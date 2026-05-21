@@ -17,3 +17,17 @@ export function todayYMDInAppTZ(): string {
     year: 'numeric', month: '2-digit', day: '2-digit',
   }).format(new Date())
 }
+
+export function formatWorked(seconds: number | null | undefined): string {
+  if (!seconds || seconds <= 0) return '—'
+  const h = Math.floor(seconds / 3600)
+  const m = Math.floor((seconds % 3600) / 60)
+  return `${h}:${String(m).padStart(2, '0')}`
+}
+
+export function formatEventTime(iso: string): string {
+  return new Intl.DateTimeFormat('en-GB', {
+    timeZone: APP_TZ,
+    hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
+  }).format(new Date(iso))
+}

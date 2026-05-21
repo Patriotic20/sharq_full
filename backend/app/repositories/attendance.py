@@ -2,11 +2,12 @@ from datetime import date as DateType
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, selectinload
 
 from app.core.timezone import APP_TZ_NAME
 from app.enums.attendance import AttendanceStatus, PresenceStatus
 from app.exceptions.attendance import DatabaseException
+from app.models.attendance_event import AttendanceEvent
 from app.models.attendances import Attendance
 from app.schemas.attendance import AttendanceUpdate
 
@@ -20,6 +21,7 @@ class AttendanceRepository:
             joinedload(Attendance.employee),
             joinedload(Attendance.enter_camera),
             joinedload(Attendance.exit_camera),
+            selectinload(Attendance.events).joinedload(AttendanceEvent.camera),
         )
 
     def _build_filters(
@@ -28,11 +30,21 @@ class AttendanceRepository:
         employee_id: int | None,
         status: AttendanceStatus | None,
         presence_status: PresenceStatus | None,
+        date_from: DateType | None = None,
+        date_to: DateType | None = None,
     ) -> list:
         filters = []
         if date:
             filters.append(
                 func.date(func.timezone(APP_TZ_NAME, Attendance.enter_time)) == date
+            )
+        if date_from:
+            filters.append(
+                func.date(func.timezone(APP_TZ_NAME, Attendance.enter_time)) >= date_from
+            )
+        if date_to:
+            filters.append(
+                func.date(func.timezone(APP_TZ_NAME, Attendance.enter_time)) <= date_to
             )
         if employee_id:
             filters.append(Attendance.employee_id == employee_id)
@@ -56,8 +68,12 @@ class AttendanceRepository:
         employee_id: int | None,
         status: AttendanceStatus | None,
         presence_status: PresenceStatus | None,
+        date_from: DateType | None = None,
+        date_to: DateType | None = None,
     ) -> tuple[list[Attendance], int]:
-        filters = self._build_filters(date, employee_id, status, presence_status)
+        filters = self._build_filters(
+            date, employee_id, status, presence_status, date_from, date_to
+        )
 
         count_result = await self.session.execute(
             select(func.count(Attendance.id)).where(*filters)

@@ -9,3 +9,8 @@ class AttendanceNotFoundException(BaseAppException):
 class DatabaseException(BaseAppException):
     status_code = 500
     detail = "Database error"
+
+
+class AttendanceConflictException(BaseAppException):
+    status_code = 409
+    detail = "Attendance record for this employee and date already exists"

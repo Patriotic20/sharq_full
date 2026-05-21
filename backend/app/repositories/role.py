@@ -39,10 +39,13 @@ class RoleRepository:
         return result.scalar_one_or_none()
 
     async def list(self, limit: int, offset: int) -> tuple[list[Role], int]:
-        count_result = await self.session.execute(select(func.count()).select_from(Role))
+        visible = Role.name != "admin"
+        count_result = await self.session.execute(
+            select(func.count()).select_from(Role).where(visible)
+        )
         total = count_result.scalar_one()
         result = await self.session.execute(
-            select(Role).order_by(Role.id).limit(limit).offset(offset)
+            select(Role).where(visible).order_by(Role.id).limit(limit).offset(offset)
         )
         return list(result.scalars().all()), total
 

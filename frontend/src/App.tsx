@@ -3,7 +3,8 @@ import { ProtectedRoute } from './components/ProtectedRoute'
 import { RequirePermission } from './components/RequirePermission'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { cn } from './lib/utils'
-import AttendanceRoute from './pages/AttendanceRoute'
+import AttendanceRoute, { EmployeeAttendanceRoute } from './pages/AttendanceRoute'
+import TabelReportPage from './pages/TabelReportPage'
 import CameraPage from './pages/CameraPage'
 import DepartmentDetailPage from './pages/DepartmentDetailPage'
 import DepartmentsPage from './pages/DepartmentsPage'
@@ -86,8 +87,15 @@ interface NavItem {
   permission?: string
 }
 
+const TabelIcon = () => (
+  <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+  </svg>
+)
+
 const NAV_ITEMS: NavItem[] = [
   { to: '/davomat',   label: 'Davomat',         icon: <ClipboardIcon />, permission: 'attendances:read' },
+  { to: '/tabel',     label: 'Tabel',           icon: <TabelIcon />,     permission: 'reports:read' },
   { to: '/kameralar', label: 'Kameralar',       icon: <VideoIcon />,     permission: 'cameras:read' },
   { to: '/xodimlar',  label: 'Xodimlar',        icon: <UsersIcon />,     permission: 'employees:read' },
   { to: '/bolimlar',  label: "Bo'limlar",       icon: <BuildingIcon />,  permission: 'departments:read' },
@@ -175,13 +183,19 @@ function AppShell() {
           <Route path="/davomat" element={
             <RequirePermission code="attendances:read"><AttendanceRoute /></RequirePermission>
           } />
+          <Route path="/tabel" element={
+            <RequirePermission code="reports:read"><TabelReportPage /></RequirePermission>
+          } />
           <Route path="/kameralar" element={
             <RequirePermission code="cameras:read"><CameraPage /></RequirePermission>
           } />
           <Route path="/xodimlar" element={
             <RequirePermission code="employees:read">
-              <EmployeePage onViewAttendance={emp => navigate('/davomat', { state: { employee: emp } })} />
+              <EmployeePage onViewAttendance={emp => navigate(`/xodimlar/${emp.id}/davomat`)} />
             </RequirePermission>
+          } />
+          <Route path="/xodimlar/:id/davomat" element={
+            <RequirePermission code="attendances:read"><EmployeeAttendanceRoute /></RequirePermission>
           } />
           <Route path="/bolimlar" element={
             <RequirePermission code="departments:read"><DepartmentsPage /></RequirePermission>

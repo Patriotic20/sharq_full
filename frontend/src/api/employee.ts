@@ -23,6 +23,10 @@ export function listEmployees(params: EmployeeListParams = {}): Promise<Employee
   return request(`/employees/?${q}`)
 }
 
+export function getEmployee(id: number): Promise<Employee> {
+  return request(`/employees/${id}`)
+}
+
 export function updateEmployee(id: number, data: EmployeeUpdate): Promise<Employee> {
   return request(`/employees/${id}`, { method: 'PATCH', body: JSON.stringify(data) })
 }

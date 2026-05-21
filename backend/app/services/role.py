@@ -2,7 +2,10 @@ from app.exceptions.role import (
     RoleAlreadyExistsException,
     RoleInUseException,
     RoleNotFoundException,
+    RoleProtectedException,
 )
+
+PROTECTED_ROLE_NAMES = frozenset({"admin"})
 from app.repositories.role import RoleRepository
 from app.schemas.common import PaginationParams
 from app.schemas.permission import PermissionRead
@@ -58,6 +61,8 @@ class RoleService:
         role = await self.repo.get_by_id(role_id)
         if not role:
             raise RoleNotFoundException()
+        if role.name in PROTECTED_ROLE_NAMES:
+            raise RoleProtectedException()
         if data.name and data.name != role.name:
             if await self.repo.get_by_name(data.name) is not None:
                 raise RoleAlreadyExistsException()
@@ -68,6 +73,8 @@ class RoleService:
         role = await self.repo.get_by_id(role_id)
         if not role:
             raise RoleNotFoundException()
+        if role.name in PROTECTED_ROLE_NAMES:
+            raise RoleProtectedException()
         if await self.repo.count_users(role_id) > 0:
             raise RoleInUseException()
         await self.repo.delete(role)

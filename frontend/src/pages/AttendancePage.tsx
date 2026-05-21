@@ -1,6 +1,7 @@
-import { Pencil, Trash2 } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { ChevronDown, ChevronRight, Pencil, Trash2 } from 'lucide-react'
+import { Fragment, useCallback, useEffect, useMemo, useState } from 'react'
 import { deleteAttendance, listAttendances, updateAttendance } from '../api/attendance'
+import AttendanceEventsTimeline from '../components/AttendanceEventsTimeline'
 import AttendanceModal from '../components/AttendanceModal'
 import { PermissionGate } from '../components/PermissionGate'
 import { Badge, PRESENCE_LABEL, PRESENCE_VARIANT, STATUS_LABEL, STATUS_VARIANT } from '../components/ui/Badge'
@@ -8,8 +9,10 @@ import { Calendar } from '../components/ui/Calendar'
 import { DeleteDialog } from '../components/ui/DeleteDialog'
 import { IconButton } from '../components/ui/IconButton'
 import { Pagination } from '../components/ui/Pagination'
-import { APP_TZ, cn, todayYMDInAppTZ } from '../lib/utils'
+import { APP_TZ, cn, formatWorked, todayYMDInAppTZ } from '../lib/utils'
 import type { Attendance, AttendanceListResponse, AttendanceUpdate } from '../types/attendance'
+
+const COLUMN_COUNT = 9
 
 
 function fmt(iso: string | null) {
@@ -39,11 +42,14 @@ function StatRow({ label, count, dotClass }: StatRowProps) {
 function SkeletonRow() {
   return (
     <tr>
+      <td className="px-2 py-3">
+        <div className="h-4 w-4 bg-gray-100 rounded animate-pulse" />
+      </td>
       <td className="px-4 py-3">
         <div className="h-4 w-32 bg-gray-100 rounded animate-pulse mb-1" />
         <div className="h-3 w-20 bg-gray-100 rounded animate-pulse" />
       </td>
-      {[48, 72, 48, 72, 64, 72, 40].map((w, i) => (
+      {[48, 72, 48, 72, 48, 64, 72, 40].map((w, i) => (
         <td key={i} className="px-4 py-3">
           <div className="h-4 bg-gray-100 rounded animate-pulse" style={{ width: w }} />
         </td>
@@ -63,6 +69,7 @@ export default function AttendancePage() {
   const [editItem, setEditItem] = useState<Attendance | null>(null)
   const [deleteId, setDeleteId] = useState<number | null>(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
+  const [expandedId, setExpandedId] = useState<number | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -237,7 +244,8 @@ export default function AttendancePage() {
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 border-b border-gray-100">
                   <tr>
-                    {['Xodim', 'Kirish', 'Kirish kamerasi', 'Chiqish', 'Chiqish kamerasi', 'Holat', 'Mavjudlik', ''].map((h, i) => (
+                    <th className="w-8 px-2 py-3" />
+                    {['Xodim', 'Kirish', 'Kirish kamerasi', 'Chiqish', 'Chiqish kamerasi', 'Jami', 'Holat', 'Mavjudlik', ''].map((h, i) => (
                       <th key={i} className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">
                         {h}
                       </th>
@@ -249,7 +257,7 @@ export default function AttendancePage() {
                     Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} />)
                   ) : data?.items.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="px-4 py-16 text-center">
+                      <td colSpan={COLUMN_COUNT + 1} className="px-4 py-16 text-center">
                         <div className="inline-flex flex-col items-center gap-2">
                           <span className="text-3xl">📋</span>
                           <p className="text-sm text-gray-400">Bu kun uchun ma'lumot yo'q</p>
@@ -257,52 +265,82 @@ export default function AttendancePage() {
                       </td>
                     </tr>
                   ) : (
-                    data?.items.map(a => (
-                      <tr key={a.id} className="hover:bg-gray-50 group transition-colors">
-                        <td className="px-4 py-3">
-                          <p className="font-semibold text-gray-900 leading-tight">
-                            {a.employee.last_name} {a.employee.first_name}
-                          </p>
-                          <p className="text-xs text-gray-400 mt-0.5">{a.employee.middle_name}</p>
-                        </td>
-                        <td className="px-4 py-3 text-gray-700">{fmt(a.enter_time)}</td>
-                        <td className="px-4 py-3 font-mono text-xs text-gray-400">
-                          {a.enter_camera?.ip_address ?? <span className="text-gray-200">—</span>}
-                        </td>
-                        <td className="px-4 py-3 text-gray-700">{fmt(a.exit_time)}</td>
-                        <td className="px-4 py-3 font-mono text-xs text-gray-400">
-                          {a.exit_camera?.ip_address ?? <span className="text-gray-200">—</span>}
-                        </td>
-                        <td className="px-4 py-3">
-                          <Badge variant={STATUS_VARIANT[a.status]}>{STATUS_LABEL[a.status]}</Badge>
-                        </td>
-                        <td className="px-4 py-3">
-                          {a.presence_status
-                            ? <Badge variant={PRESENCE_VARIANT[a.presence_status]}>{PRESENCE_LABEL[a.presence_status]}</Badge>
-                            : <span className="text-gray-200 select-none">—</span>
-                          }
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex gap-1 justify-end">
-                            <PermissionGate code="attendances:update">
-                              <IconButton
-                                icon={Pencil}
-                                label="Tahrirlash"
-                                onClick={() => setEditItem(a)}
-                              />
-                            </PermissionGate>
-                            <PermissionGate code="attendances:delete">
-                              <IconButton
-                                icon={Trash2}
-                                label="O'chirish"
-                                variant="danger"
-                                onClick={() => setDeleteId(a.id)}
-                              />
-                            </PermissionGate>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
+                    data?.items.map(a => {
+                      const expanded = expandedId === a.id
+                      return (
+                        <Fragment key={a.id}>
+                          <tr
+                            className={cn(
+                              'hover:bg-primary-50/40 group transition-colors cursor-pointer',
+                              expanded && 'bg-primary-50/30'
+                            )}
+                            onClick={() => setExpandedId(expanded ? null : a.id)}
+                          >
+                            <td className="px-2 py-3 text-gray-400">
+                              {expanded
+                                ? <ChevronDown size={16} />
+                                : <ChevronRight size={16} />
+                              }
+                            </td>
+                            <td className="px-4 py-3">
+                              <p className="font-semibold text-gray-900 leading-tight">
+                                {a.employee.last_name} {a.employee.first_name}
+                              </p>
+                              <p className="text-xs text-gray-400 mt-0.5">{a.employee.middle_name}</p>
+                            </td>
+                            <td className="px-4 py-3 text-gray-700">{fmt(a.enter_time)}</td>
+                            <td className="px-4 py-3 font-mono text-xs text-gray-400">
+                              {a.enter_camera?.ip_address ?? <span className="text-gray-200">—</span>}
+                            </td>
+                            <td className="px-4 py-3 text-gray-700">{fmt(a.exit_time)}</td>
+                            <td className="px-4 py-3 font-mono text-xs text-gray-400">
+                              {a.exit_camera?.ip_address ?? <span className="text-gray-200">—</span>}
+                            </td>
+                            <td className="px-4 py-3 font-mono text-sm tabular-nums text-gray-800">
+                              {formatWorked(a.worked_seconds)}
+                            </td>
+                            <td className="px-4 py-3">
+                              <Badge variant={STATUS_VARIANT[a.status]}>{STATUS_LABEL[a.status]}</Badge>
+                            </td>
+                            <td className="px-4 py-3">
+                              {a.presence_status
+                                ? <Badge variant={PRESENCE_VARIANT[a.presence_status]}>{PRESENCE_LABEL[a.presence_status]}</Badge>
+                                : <span className="text-gray-200 select-none">—</span>
+                              }
+                            </td>
+                            <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
+                              <div className="flex gap-1 justify-end">
+                                <PermissionGate code="attendances:update">
+                                  <IconButton
+                                    icon={Pencil}
+                                    label="Tahrirlash"
+                                    onClick={() => setEditItem(a)}
+                                  />
+                                </PermissionGate>
+                                <PermissionGate code="attendances:delete">
+                                  <IconButton
+                                    icon={Trash2}
+                                    label="O'chirish"
+                                    variant="danger"
+                                    onClick={() => setDeleteId(a.id)}
+                                  />
+                                </PermissionGate>
+                              </div>
+                            </td>
+                          </tr>
+                          {expanded && (
+                            <tr className="bg-gray-50/50">
+                              <td colSpan={COLUMN_COUNT + 1} className="px-6 py-4">
+                                <AttendanceEventsTimeline
+                                  events={a.events}
+                                  workedSeconds={a.worked_seconds}
+                                />
+                              </td>
+                            </tr>
+                          )}
+                        </Fragment>
+                      )
+                    })
                   )}
                 </tbody>
               </table>

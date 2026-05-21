@@ -5,9 +5,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import get_session, require_permission
 from app.enums.attendance import AttendanceStatus, PresenceStatus
-from app.exceptions.attendance import AttendanceNotFoundException, DatabaseException
+from app.exceptions.attendance import (
+    AttendanceConflictException,
+    AttendanceNotFoundException,
+    DatabaseException,
+)
 from app.repositories.attendance import AttendanceRepository
 from app.schemas.attendance import (
+    AttendanceCreate,
     AttendanceFilterParams,
     AttendanceListResponse,
     AttendanceRead,
@@ -25,7 +30,9 @@ def get_attendance_service(
     return AttendanceService(AttendanceRepository(session))
 
 
-def _handle(exc: AttendanceNotFoundException | DatabaseException) -> None:
+def _handle(
+    exc: AttendanceNotFoundException | AttendanceConflictException | DatabaseException,
+) -> None:
     raise HTTPException(status_code=exc.status_code, detail=exc.detail)
 
 
@@ -38,6 +45,8 @@ async def list_attendances(
     page: int = 1,
     size: int = 10,
     filter_date: DateType | None = Query(default=None, alias="date"),
+    date_from: DateType | None = None,
+    date_to: DateType | None = None,
     employee_id: int | None = None,
     status: AttendanceStatus | None = None,
     presence_status: PresenceStatus | None = None,
@@ -46,11 +55,29 @@ async def list_attendances(
     pagination = PaginationParams(page=page, size=size)
     filters = AttendanceFilterParams(
         date=filter_date,
+        date_from=date_from,
+        date_to=date_to,
         employee_id=employee_id,
         status=status,
         presence_status=presence_status,
     )
     return await service.list(pagination, filters)
+
+
+@router.post(
+    "/",
+    response_model=AttendanceRead,
+    status_code=201,
+    dependencies=[Depends(require_permission("attendances:update"))],
+)
+async def create_attendance(
+    data: AttendanceCreate,
+    service: AttendanceService = Depends(get_attendance_service),
+) -> AttendanceRead:
+    try:
+        return await service.create(data)
+    except (AttendanceConflictException, DatabaseException) as e:
+        _handle(e)
 
 
 @router.get(

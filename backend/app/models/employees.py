@@ -2,7 +2,9 @@ from .base import Base
 from .mixins.id_int_pk import IdIntPk
 from .mixins.time_stamp_mixin import TimestampMixin
 
-from sqlalchemy import ForeignKey, String
+from decimal import Decimal
+
+from sqlalchemy import ForeignKey, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 
@@ -22,6 +24,11 @@ class Employee(Base, IdIntPk, TimestampMixin):
         nullable=True,
         index=True,
     )
+
+    employment_rate: Mapped[Decimal] = mapped_column(
+        Numeric(3, 2), nullable=False, server_default="1.00"
+    )
+    position: Mapped[str | None] = mapped_column(String(100), nullable=True)
 
     department = relationship("Department", back_populates="employees", lazy="joined")
     attendances = relationship("Attendance", back_populates="employee")

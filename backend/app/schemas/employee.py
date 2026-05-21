@@ -1,3 +1,4 @@
+from decimal import Decimal
 from math import ceil
 from datetime import datetime
 from typing import Literal
@@ -36,6 +37,8 @@ class EmployeeCreate(BaseModel):
     middle_name: str = Field(min_length=1, max_length=50)
     camera_user_id: str | None = Field(default=None, max_length=50)
     department_id: int | None = None
+    employment_rate: Decimal = Field(default=Decimal("1.00"), ge=0, le=9.99)
+    position: str | None = Field(default=None, max_length=100)
 
 
 class EmployeeUpdate(BaseModel):
@@ -46,6 +49,8 @@ class EmployeeUpdate(BaseModel):
     middle_name: str | None = Field(default=None, min_length=1, max_length=50)
     camera_user_id: str | None = Field(default=None, max_length=50)
     department_id: int | None = None
+    employment_rate: Decimal | None = Field(default=None, ge=0, le=9.99)
+    position: str | None = Field(default=None, max_length=100)
 
 
 class EmployeeRead(BaseModel):
@@ -58,6 +63,8 @@ class EmployeeRead(BaseModel):
     camera_user_id: str | None
     department_id: int | None
     department: DepartmentBrief | None = None
+    employment_rate: Decimal = Decimal("1.00")
+    position: str | None = None
     created_at: datetime
     updated_at: datetime
 

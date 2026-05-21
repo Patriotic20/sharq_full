@@ -11,6 +11,7 @@ from app.models.role import Role
 from app.models.role_permission import RolePermission
 from app.models.user import User
 from app.repositories.permission import PermissionRepository
+from app.repositories.role import RoleRepository
 
 logger = logging.getLogger(__name__)
 
@@ -62,6 +63,24 @@ async def _seed_roles(
             await session.commit()
 
         name_to_id[role_name] = role.id
+
+    # Prune any roles that are no longer in ROLE_PRESETS (e.g. legacy "manager"/"user").
+    role_repo = RoleRepository(session)
+    stale_result = await session.execute(
+        select(Role).where(Role.name.notin_(ROLE_PRESETS.keys()))
+    )
+    for stale_role in stale_result.scalars().all():
+        user_count = await role_repo.count_users(stale_role.id)
+        if user_count > 0:
+            logger.warning(
+                "Skipping prune of role %r — %d user(s) still assigned",
+                stale_role.name, user_count,
+            )
+            continue
+        await session.delete(stale_role)
+        logger.info("Pruned obsolete role: %s", stale_role.name)
+    await session.commit()
+
     return name_to_id
 
 

@@ -7,6 +7,7 @@ from app.exceptions.role import (
     RoleAlreadyExistsException,
     RoleInUseException,
     RoleNotFoundException,
+    RoleProtectedException,
 )
 from app.repositories.role import RoleRepository
 from app.schemas.common import PaginationParams
@@ -30,6 +31,7 @@ def _handle(
     exc: RoleNotFoundException
     | RoleAlreadyExistsException
     | RoleInUseException
+    | RoleProtectedException
     | DatabaseException,
 ) -> None:
     raise HTTPException(status_code=exc.status_code, detail=exc.detail)
@@ -107,7 +109,12 @@ async def update_role(
 ) -> RoleRead:
     try:
         return await service.update(role_id, data)
-    except (RoleNotFoundException, RoleAlreadyExistsException, DatabaseException) as e:
+    except (
+        RoleNotFoundException,
+        RoleAlreadyExistsException,
+        RoleProtectedException,
+        DatabaseException,
+    ) as e:
         _handle(e)
 
 
@@ -122,5 +129,10 @@ async def delete_role(
 ) -> None:
     try:
         await service.delete(role_id)
-    except (RoleNotFoundException, RoleInUseException, DatabaseException) as e:
+    except (
+        RoleNotFoundException,
+        RoleInUseException,
+        RoleProtectedException,
+        DatabaseException,
+    ) as e:
         _handle(e)

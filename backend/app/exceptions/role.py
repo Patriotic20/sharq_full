@@ -16,6 +16,11 @@ class RoleInUseException(BaseAppException):
     detail = "Role is assigned to one or more users"
 
 
+class RoleProtectedException(BaseAppException):
+    status_code = 403
+    detail = "This role is protected and cannot be modified or deleted"
+
+
 class DatabaseException(BaseAppException):
     status_code = 500
     detail = "Database error"

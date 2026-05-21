@@ -1,5 +1,7 @@
 import { useState } from 'react'
-import type { Attendance, AttendanceStatus, AttendanceUpdate, PresenceStatus } from '../types/attendance'
+import type { Attendance, AttendanceStatus, AttendanceUpdate, LeaveType, PresenceStatus } from '../types/attendance'
+import { LEAVE_TYPE_LABEL } from '../types/attendance'
+import AttendanceEventsTimeline from './AttendanceEventsTimeline'
 
 interface Props {
   attendance: Attendance
@@ -29,6 +31,7 @@ function toLocalInput(iso: string | null) {
 export default function AttendanceModal({ attendance, onClose, onSubmit }: Props) {
   const [status, setStatus] = useState<AttendanceStatus>(attendance.status)
   const [presenceStatus, setPresenceStatus] = useState<PresenceStatus | ''>(attendance.presence_status ?? '')
+  const [leaveType, setLeaveType] = useState<LeaveType | ''>(attendance.leave_type ?? '')
   const [enterTime, setEnterTime] = useState(toLocalInput(attendance.enter_time))
   const [exitTime, setExitTime] = useState(toLocalInput(attendance.exit_time))
   const [loading, setLoading] = useState(false)
@@ -42,6 +45,7 @@ export default function AttendanceModal({ attendance, onClose, onSubmit }: Props
       const payload: AttendanceUpdate = {
         status,
         presence_status: presenceStatus || null,
+        leave_type: status === 'absent' ? (leaveType || null) : null,
         enter_time: enterTime ? new Date(enterTime).toISOString() : null,
         exit_time:  exitTime  ? new Date(exitTime).toISOString()  : null,
       }
@@ -58,8 +62,8 @@ export default function AttendanceModal({ attendance, onClose, onSubmit }: Props
   const labelClass = "block text-sm font-medium text-gray-700 mb-1"
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 mx-4">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
         <h2 className="text-lg font-semibold text-gray-800 mb-1">Davomat tahrirlash</h2>
         <p className="text-sm text-gray-400 mb-5">
           {attendance.employee.last_name} {attendance.employee.first_name} · #{attendance.id}
@@ -80,6 +84,18 @@ export default function AttendanceModal({ attendance, onClose, onSubmit }: Props
             </select>
           </div>
 
+          {status === 'absent' && (
+            <div>
+              <label className={labelClass}>Yo'qlik sababi (tabel uchun)</label>
+              <select className={fieldClass} value={leaveType} onChange={e => setLeaveType(e.target.value as LeaveType | '')}>
+                <option value="">— Sababsiz (P/Progul) —</option>
+                {(Object.keys(LEAVE_TYPE_LABEL) as LeaveType[]).map(k => (
+                  <option key={k} value={k}>{LEAVE_TYPE_LABEL[k]}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
           <div>
             <label className={labelClass}>Kirish vaqti</label>
             <input type="datetime-local" className={fieldClass} value={enterTime} onChange={e => setEnterTime(e.target.value)} />
@@ -89,6 +105,19 @@ export default function AttendanceModal({ attendance, onClose, onSubmit }: Props
             <label className={labelClass}>Chiqish vaqti</label>
             <input type="datetime-local" className={fieldClass} value={exitTime} onChange={e => setExitTime(e.target.value)} />
           </div>
+
+          {attendance.events && attendance.events.length > 0 && (
+            <div className="pt-2 border-t border-gray-100">
+              <AttendanceEventsTimeline
+                events={attendance.events}
+                workedSeconds={attendance.worked_seconds}
+              />
+              <p className="text-xs text-gray-400 mt-2">
+                Qo'l bilan kirish/chiqish vaqtini o'zgartirish o'tishlar ro'yxati bilan
+                avtomatik moslashtirilmaydi.
+              </p>
+            </div>
+          )}
 
           {error && <p className="text-sm text-red-600">{error}</p>}
 

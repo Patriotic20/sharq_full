@@ -8,6 +8,8 @@ export interface Employee {
   camera_user_id: string | null
   department_id: number | null
   department: DepartmentBrief | null
+  employment_rate: number
+  position: string | null
   created_at: string
   updated_at: string
 }
@@ -26,4 +28,6 @@ export interface EmployeeUpdate {
   middle_name?: string
   camera_user_id?: string | null
   department_id?: number | null
+  employment_rate?: number
+  position?: string | null
 }

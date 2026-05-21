@@ -3,7 +3,7 @@ from datetime import date as DateType, datetime
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.enums.attendance import AttendanceStatus, PresenceStatus
+from app.enums.attendance import AttendanceStatus, LeaveType, PresenceStatus
 from app.enums.camera import CameraType
 
 
@@ -22,6 +22,8 @@ class PaginationParams(BaseModel):
 
 class AttendanceFilterParams(BaseModel):
     date: DateType | None = None
+    date_from: DateType | None = None
+    date_to: DateType | None = None
     employee_id: int | None = None
     status: AttendanceStatus | None = None
     presence_status: PresenceStatus | None = None
@@ -41,15 +43,41 @@ class CameraBrief(BaseModel):
     ip_address: str
 
 
+class AttendanceEventRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    type: CameraType
+    event_time: datetime
+    camera: CameraBrief | None
+    rec_no: int
+
+
 class AttendanceUpdate(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True)
 
     status: AttendanceStatus | None = None
     presence_status: PresenceStatus | None = None
+    leave_type: LeaveType | None = None
     enter_time: datetime | None = None
     exit_time: datetime | None = None
     enter_camera_id: int | None = None
     exit_camera_id: int | None = None
+
+
+class AttendanceCreate(BaseModel):
+    """Manual creation of an attendance record for a given employee+date.
+
+    `date` anchors the row to a calendar day; the service stores it as
+    `enter_time = date at 12:00 in the configured app timezone` so the same
+    date-range queries used elsewhere find it.
+    """
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    employee_id: int
+    date: DateType
+    status: AttendanceStatus
+    leave_type: LeaveType | None = None
 
 
 class AttendanceRead(BaseModel):
@@ -66,6 +94,9 @@ class AttendanceRead(BaseModel):
     exit_rec_no: int | None
     status: AttendanceStatus
     presence_status: PresenceStatus | None
+    leave_type: LeaveType | None = None
+    worked_seconds: int = 0
+    events: list[AttendanceEventRead] = Field(default_factory=list)
     created_at: datetime
     updated_at: datetime
 

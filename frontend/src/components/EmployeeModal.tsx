@@ -16,6 +16,8 @@ export default function EmployeeModal({ employee, onClose, onSubmit }: Props) {
     middle_name: '',
     camera_user_id: '',
     department_id: '' as string,
+    employment_rate: '1.00',
+    position: '',
   })
   const [departments, setDepartments] = useState<Department[]>([])
   const [loading, setLoading] = useState(false)
@@ -28,6 +30,8 @@ export default function EmployeeModal({ employee, onClose, onSubmit }: Props) {
       middle_name:    employee.middle_name,
       camera_user_id: employee.camera_user_id ?? '',
       department_id:  employee.department_id ? String(employee.department_id) : '',
+      employment_rate: employee.employment_rate != null ? String(employee.employment_rate) : '1.00',
+      position:       employee.position ?? '',
     })
   }, [employee])
 
@@ -50,6 +54,8 @@ export default function EmployeeModal({ employee, onClose, onSubmit }: Props) {
         middle_name:    form.middle_name    || undefined,
         camera_user_id: form.camera_user_id || null,
         department_id:  form.department_id ? Number(form.department_id) : null,
+        employment_rate: form.employment_rate ? Number(form.employment_rate) : undefined,
+        position:       form.position || null,
       }
       await onSubmit(payload)
       onClose()
@@ -111,6 +117,21 @@ export default function EmployeeModal({ employee, onClose, onSubmit }: Props) {
                 <option key={d.id} value={d.id}>{d.name}</option>
               ))}
             </select>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={labelClass}>Lavozim</label>
+              <input className={fieldClass} value={form.position}
+                onChange={e => set('position', e.target.value)}
+                placeholder="masalan: o'qituvchi" />
+            </div>
+            <div>
+              <label className={labelClass}>Stavka</label>
+              <input type="number" step="0.25" min="0" max="9.99"
+                className={fieldClass} value={form.employment_rate}
+                onChange={e => set('employment_rate', e.target.value)} />
+            </div>
           </div>
 
           {error && <p className="text-sm text-red-600">{error}</p>}

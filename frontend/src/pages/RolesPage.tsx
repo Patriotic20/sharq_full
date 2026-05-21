@@ -1,6 +1,6 @@
 import { Eye, Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { createRole, deleteRole, listRoles } from '../api/roles'
 import { PermissionGate } from '../components/PermissionGate'
 import RoleModal from '../components/RoleModal'
@@ -22,6 +22,7 @@ function SkeletonRow() {
 }
 
 export default function RolesPage() {
+  const navigate = useNavigate()
   const [data, setData] = useState<RoleListResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -111,15 +112,19 @@ export default function RolesPage() {
                 </tr>
               ) : (
                 data?.items.map(r => (
-                  <tr key={r.id} className="hover:bg-primary-50/50 group transition-colors">
+                  <tr
+                    key={r.id}
+                    onClick={() => navigate(`/roles/${r.id}`)}
+                    className="hover:bg-primary-50/50 group transition-colors cursor-pointer"
+                  >
                     <td className="px-4 py-3 text-gray-400 font-mono text-xs">#{r.id}</td>
-                    <td className="px-4 py-3 font-semibold text-gray-900">
-                      <Link to={`/roles/${r.id}`} className="hover:text-primary-600">{r.name}</Link>
+                    <td className="px-4 py-3 font-semibold text-gray-900 group-hover:text-primary-600">
+                      {r.name}
                     </td>
                     <td className="px-4 py-3 text-gray-500">
                       {r.description ?? <span className="text-gray-200">—</span>}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
                       <div className="flex gap-1 justify-end">
                         <IconButton
                           icon={Eye}
