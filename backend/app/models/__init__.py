@@ -2,6 +2,7 @@ __all__ = [
     "Base",
     "Camera",
     "Employee",
+    "EmployeeInfo",
     "Attendance",
     "AttendanceEvent",
     "WorkSchedule",
@@ -19,6 +20,7 @@ __all__ = [
 from .base import Base
 from .cameras import Camera
 from .employees import Employee
+from .employe_info import EmployeeInfo
 from .attendances import Attendance
 from .attendance_event import AttendanceEvent
 from .work_schedule import WorkSchedule

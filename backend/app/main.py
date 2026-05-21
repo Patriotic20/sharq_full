@@ -12,6 +12,7 @@ from app.routers.auth import router as auth_router
 from app.routers.camera import router as camera_router
 from app.routers.departments import router as department_router
 from app.routers.employees import router as employee_router
+from app.routers.employe_info import router as employe_info_router
 from app.routers.groups import router as group_router
 from app.routers.holidays import router as holiday_router
 from app.routers.permissions import router as permission_router
@@ -61,6 +62,7 @@ app.include_router(permission_router, prefix="/api/v1")
 app.include_router(role_permission_router, prefix="/api/v1")
 app.include_router(camera_router, prefix="/api/v1")
 app.include_router(employee_router, prefix="/api/v1")
+app.include_router(employe_info_router, prefix="/api/v1")
 app.include_router(department_router, prefix="/api/v1")
 app.include_router(group_router, prefix="/api/v1")
 app.include_router(attendance_router, prefix="/api/v1")

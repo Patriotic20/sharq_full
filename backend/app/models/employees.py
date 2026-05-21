@@ -32,3 +32,9 @@ class Employee(Base, IdIntPk, TimestampMixin):
 
     department = relationship("Department", back_populates="employees", lazy="joined")
     attendances = relationship("Attendance", back_populates="employee")
+    info = relationship(
+        "EmployeeInfo",
+        back_populates="employee",
+        uselist=False,
+        cascade="all, delete-orphan",
+    )

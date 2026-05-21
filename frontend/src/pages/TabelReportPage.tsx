@@ -1,5 +1,5 @@
-import { Download, FileSpreadsheet } from 'lucide-react'
-import { useCallback, useEffect, useState } from 'react'
+import { Download, FileSpreadsheet, Search } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createAttendance, deleteAttendance, updateAttendance } from '../api/attendance'
 import { listDepartments } from '../api/department'
 import { downloadTabel, fetchTabelGrid } from '../api/reports'
@@ -41,6 +41,15 @@ function cellClass(cell: TabelDayCell): string {
   return 'bg-white text-gray-400'
 }
 
+// Sticky offsets for the four left columns (must match the widths used in cells).
+const STICKY = {
+  num:      'sticky left-0 z-10',
+  name:     'sticky left-10 z-10',
+  position: 'sticky left-[220px] z-10',
+  rate:     'sticky left-[330px] z-10',
+  total:    'sticky right-0 z-10',
+}
+
 export default function TabelReportPage() {
   const now = new Date()
   const [year, setYear] = useState(now.getFullYear())
@@ -53,40 +62,69 @@ export default function TabelReportPage() {
   const [error, setError] = useState('')
   const [openCell, setOpenCell] = useState<{ empId: number; date: string } | null>(null)
   const [saving, setSaving] = useState(false)
+  const [search, setSearch] = useState('')
+
+  // (year, month, departmentId) → TabelData cache. Survives re-renders, not navigation.
+  const cacheRef = useRef<Map<string, TabelData>>(new Map())
 
   useEffect(() => {
     listDepartments({ size: 100 })
-      .then(res => setDepartments(res.items))
+      .then(res => {
+        setDepartments(res.items)
+        // Auto-select the first department so the page is useful by default.
+        if (res.items.length > 0) {
+          setDepartmentId(prev => (prev === '' ? res.items[0].id : prev))
+        }
+      })
       .catch(() => {})
   }, [])
 
+  const cacheKey = useMemo(
+    () => `${year}-${month}-${departmentId}`,
+    [year, month, departmentId],
+  )
+
   const loadGrid = useCallback(async () => {
+    if (departmentId === '') {
+      setGrid(null)
+      return
+    }
+    const cached = cacheRef.current.get(cacheKey)
+    if (cached) {
+      setGrid(cached)
+      return
+    }
     setLoadingGrid(true)
     setError('')
     try {
       const data = await fetchTabelGrid({
         year,
         month,
-        department_id: departmentId === '' ? undefined : departmentId,
+        department_id: departmentId,
       })
+      cacheRef.current.set(cacheKey, data)
       setGrid(data)
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Xatolik yuz berdi')
     } finally {
       setLoadingGrid(false)
     }
-  }, [year, month, departmentId])
+  }, [year, month, departmentId, cacheKey])
 
   useEffect(() => { loadGrid() }, [loadGrid])
 
   const handleDownload = useCallback(async () => {
+    if (departmentId === '') {
+      setError("Bo'lim tanlang")
+      return
+    }
     setLoadingDl(true)
     setError('')
     try {
       const { blob, filename } = await downloadTabel({
         year,
         month,
-        department_id: departmentId === '' ? undefined : departmentId,
+        department_id: departmentId,
       })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
@@ -125,6 +163,8 @@ export default function TabelReportPage() {
         }
       }
       setOpenCell(null)
+      // Invalidate cache for current view so loadGrid re-fetches fresh data.
+      cacheRef.current.delete(cacheKey)
       await loadGrid()
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Saqlashda xatolik')
@@ -132,6 +172,13 @@ export default function TabelReportPage() {
       setSaving(false)
     }
   }
+
+  const visibleEmployees = useMemo(() => {
+    if (!grid) return []
+    const q = search.trim().toLowerCase()
+    if (!q) return grid.employees
+    return grid.employees.filter(e => e.full_name.toLowerCase().includes(q))
+  }, [grid, search])
 
   const years = [now.getFullYear() - 1, now.getFullYear(), now.getFullYear() + 1]
   const days = grid ? grid.days_in_month : 31
@@ -180,13 +227,13 @@ export default function TabelReportPage() {
                 value={departmentId}
                 onChange={e => setDepartmentId(e.target.value === '' ? '' : Number(e.target.value))}
               >
-                <option value="">Barcha xodimlar</option>
+                <option value="" disabled>— Bo'lim tanlang —</option>
                 {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
               </select>
             </div>
             <button
               onClick={handleDownload}
-              disabled={loadingDl}
+              disabled={loadingDl || departmentId === ''}
               className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-xl bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               <Download className="w-4 h-4" />
@@ -201,7 +248,12 @@ export default function TabelReportPage() {
 
         {/* Grid */}
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          {loadingGrid && !grid ? (
+          {departmentId === '' ? (
+            <div className="p-10 text-center text-sm text-gray-400">
+              <p className="text-3xl mb-2">🏢</p>
+              Bo'lim tanlang
+            </div>
+          ) : loadingGrid && !grid ? (
             <div className="p-10 text-center text-sm text-gray-400">Yuklanmoqda…</div>
           ) : !grid || grid.employees.length === 0 ? (
             <div className="p-10 text-center text-sm text-gray-400">
@@ -210,21 +262,33 @@ export default function TabelReportPage() {
             </div>
           ) : (
             <>
-              <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between flex-wrap gap-2">
+              <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between flex-wrap gap-3">
                 <div className="text-sm">
                   <span className="font-semibold text-gray-800">{grid.kafedra_name}</span>
                   <span className="text-gray-400 ml-2">— {grid.month_name} {grid.year}, ish kunlari: {grid.working_days}</span>
                 </div>
-                {saving && <span className="text-xs text-gray-400">Saqlanmoqda…</span>}
+                <div className="flex items-center gap-3">
+                  {saving && <span className="text-xs text-gray-400">Saqlanmoqda…</span>}
+                  <div className="relative">
+                    <Search className="w-4 h-4 text-gray-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input
+                      type="text"
+                      value={search}
+                      onChange={e => setSearch(e.target.value)}
+                      placeholder="Xodim ismi bo'yicha qidirish..."
+                      className="pl-8 pr-3 py-1.5 text-sm w-64 border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition-colors"
+                    />
+                  </div>
+                </div>
               </div>
               <div className="overflow-x-auto">
                 <table className="text-xs border-collapse">
-                  <thead className="bg-gray-50 sticky top-0">
+                  <thead className="bg-gray-50 sticky top-0 z-20">
                     <tr>
-                      <th className="px-2 py-2 text-center font-semibold text-gray-400 border-b border-gray-200 w-10">№</th>
-                      <th className="px-3 py-2 text-left font-semibold text-gray-400 border-b border-gray-200 min-w-[180px]">F.I.O</th>
-                      <th className="px-2 py-2 text-left font-semibold text-gray-400 border-b border-gray-200 min-w-[110px]">Lavozim</th>
-                      <th className="px-2 py-2 text-center font-semibold text-gray-400 border-b border-gray-200 w-12">St.</th>
+                      <th className={cn('px-2 py-2 text-center font-semibold text-gray-400 border-b border-gray-200 w-10 bg-gray-50', STICKY.num)}>№</th>
+                      <th className={cn('px-3 py-2 text-left font-semibold text-gray-400 border-b border-gray-200 min-w-[180px] w-[180px] bg-gray-50', STICKY.name)}>F.I.O</th>
+                      <th className={cn('px-2 py-2 text-left font-semibold text-gray-400 border-b border-gray-200 min-w-[110px] w-[110px] bg-gray-50', STICKY.position)}>Lavozim</th>
+                      <th className={cn('px-2 py-2 text-center font-semibold text-gray-400 border-b border-gray-200 w-12 bg-gray-50', STICKY.rate)}>St.</th>
                       {Array.from({ length: days }, (_, i) => {
                         const d = new Date(grid.year, grid.month - 1, i + 1)
                         const isHoliday = grid.holiday_dates.includes(
@@ -238,22 +302,29 @@ export default function TabelReportPage() {
                               'px-1 py-2 text-center font-semibold text-gray-500 border-b border-gray-200 w-8 tabular-nums',
                               isHoliday && 'bg-gray-200',
                               !isHoliday && isWknd && 'bg-gray-100',
+                              !isHoliday && !isWknd && 'bg-gray-50',
                             )}
                           >
                             {i + 1}
                           </th>
                         )
                       })}
-                      <th className="px-2 py-2 text-center font-semibold text-gray-400 border-b border-gray-200 w-12">Jami</th>
+                      <th className={cn('px-2 py-2 text-center font-semibold text-gray-400 border-b border-gray-200 w-12 bg-gray-50', STICKY.total)}>Jami</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {grid.employees.map((emp, rowIdx) => (
-                      <tr key={emp.employee_id} className="hover:bg-gray-50/50">
-                        <td className="px-2 py-1.5 text-center text-gray-400 border-b border-gray-50">{rowIdx + 1}</td>
-                        <td className="px-3 py-1.5 text-gray-800 font-medium border-b border-gray-50 whitespace-nowrap">{emp.full_name}</td>
-                        <td className="px-2 py-1.5 text-gray-500 border-b border-gray-50 whitespace-nowrap">{emp.position ?? '—'}</td>
-                        <td className="px-2 py-1.5 text-center text-gray-500 tabular-nums border-b border-gray-50">{emp.employment_rate}</td>
+                    {visibleEmployees.length === 0 ? (
+                      <tr>
+                        <td colSpan={4 + days + 1} className="px-4 py-10 text-center text-sm text-gray-400">
+                          Topilmadi
+                        </td>
+                      </tr>
+                    ) : visibleEmployees.map((emp, rowIdx) => (
+                      <tr key={emp.employee_id} className="group hover:bg-gray-50/70">
+                        <td className={cn('px-2 py-1.5 text-center text-gray-400 border-b border-gray-50 bg-white group-hover:bg-gray-50/70', STICKY.num)}>{rowIdx + 1}</td>
+                        <td className={cn('px-3 py-1.5 text-gray-800 font-medium border-b border-gray-50 whitespace-nowrap bg-white group-hover:bg-gray-50/70', STICKY.name)}>{emp.full_name}</td>
+                        <td className={cn('px-2 py-1.5 text-gray-500 border-b border-gray-50 whitespace-nowrap bg-white group-hover:bg-gray-50/70', STICKY.position)}>{emp.position ?? '—'}</td>
+                        <td className={cn('px-2 py-1.5 text-center text-gray-500 tabular-nums border-b border-gray-50 bg-white group-hover:bg-gray-50/70', STICKY.rate)}>{emp.employment_rate}</td>
                         {emp.days.map(cell => {
                           const isOpen = openCell?.empId === emp.employee_id && openCell.date === cell.date
                           return (
@@ -283,7 +354,7 @@ export default function TabelReportPage() {
                             </td>
                           )
                         })}
-                        <td className="px-2 py-1.5 text-center font-bold text-gray-800 tabular-nums border-b border-gray-50">{emp.worked_days}</td>
+                        <td className={cn('px-2 py-1.5 text-center font-bold text-gray-800 tabular-nums border-b border-gray-50 bg-white group-hover:bg-gray-50/70', STICKY.total)}>{emp.worked_days}</td>
                       </tr>
                     ))}
                   </tbody>
