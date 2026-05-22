@@ -10,6 +10,7 @@ import DepartmentDetailPage from './pages/DepartmentDetailPage'
 import DepartmentsPage from './pages/DepartmentsPage'
 import EmployeePage from './pages/EmployeePage'
 import EmployeeInfoPage from './pages/EmployeeInfoPage'
+import PositionsPage from './pages/PositionsPage'
 import ForbiddenPage from './pages/ForbiddenPage'
 import GroupsPage from './pages/GroupsPage'
 import LoginPage from './pages/LoginPage'
@@ -101,6 +102,7 @@ const NAV_ITEMS: NavItem[] = [
   { to: '/xodimlar',  label: 'Xodimlar',        icon: <UsersIcon />,     permission: 'employees:read' },
   { to: '/xodimlar-malumot', label: "Xodim ma'lumoti", icon: <UsersIcon />, permission: 'employe_info:read' },
   { to: '/bolimlar',  label: "Bo'limlar",       icon: <BuildingIcon />,  permission: 'departments:read' },
+  { to: '/lavozimlar', label: 'Lavozimlar',     icon: <BuildingIcon />,  permission: 'positions:read' },
   { to: '/guruhlar',  label: 'Guruhlar',        icon: <GroupIcon />,     permission: 'groups:read' },
   { to: '/users',     label: 'Foydalanuvchilar', icon: <UserIcon />,     permission: 'users:read' },
   { to: '/roles',     label: 'Rollar',          icon: <ShieldIcon />,    permission: 'roles:read' },
@@ -207,6 +209,9 @@ function AppShell() {
           } />
           <Route path="/bolimlar/:id" element={
             <RequirePermission code="departments:read"><DepartmentDetailPage /></RequirePermission>
+          } />
+          <Route path="/lavozimlar" element={
+            <RequirePermission code="positions:read"><PositionsPage /></RequirePermission>
           } />
           <Route path="/guruhlar" element={
             <RequirePermission code="groups:read"><GroupsPage /></RequirePermission>

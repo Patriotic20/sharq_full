@@ -1,11 +1,14 @@
 import type { DepartmentBrief } from './department'
+import type { PositionBrief } from './position'
+
+export type Gender = 'erkak' | 'ayol'
 
 export interface EmployeeInfo {
   id: number
   employee_id: number
   full_name: string
   nationality: string | null
-  gender: string | null
+  gender: Gender | null
   birth_date: string | null
   birth_place: string | null
   residence_address: string | null
@@ -16,7 +19,8 @@ export interface EmployeeInfo {
   work_experience: string | null
   department_id: number | null
   department: DepartmentBrief | null
-  position: string | null
+  position_id: number | null
+  position: PositionBrief | null
   employment_rate: number | null
   state_awards: string | null
   foreign_languages: string | null
@@ -31,7 +35,7 @@ export interface EmployeeInfoCreate {
   employee_id: number
   full_name: string
   nationality?: string | null
-  gender?: string | null
+  gender?: Gender | null
   birth_date?: string | null
   birth_place?: string | null
   residence_address?: string | null
@@ -41,7 +45,7 @@ export interface EmployeeInfoCreate {
   scientific_title?: string | null
   work_experience?: string | null
   department_id?: number | null
-  position?: string | null
+  position_id?: number | null
   employment_rate?: number | null
   state_awards?: string | null
   foreign_languages?: string | null

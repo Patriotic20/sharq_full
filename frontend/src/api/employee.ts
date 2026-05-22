@@ -1,5 +1,5 @@
 import { request } from './client'
-import type { Employee, EmployeeListResponse, EmployeeUpdate } from '../types/employee'
+import type { Employee, EmployeeCreate, EmployeeListResponse, EmployeeUpdate } from '../types/employee'
 
 export interface EmployeeListParams {
   page?: number
@@ -25,6 +25,10 @@ export function listEmployees(params: EmployeeListParams = {}): Promise<Employee
 
 export function getEmployee(id: number): Promise<Employee> {
   return request(`/employees/${id}`)
+}
+
+export function createEmployee(data: EmployeeCreate): Promise<Employee> {
+  return request('/employees/', { method: 'POST', body: JSON.stringify(data) })
 }
 
 export function updateEmployee(id: number, data: EmployeeUpdate): Promise<Employee> {

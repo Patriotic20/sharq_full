@@ -4,9 +4,11 @@ from app.exceptions.employe_info import (
     EmployeeInfoAlreadyExistsException,
     EmployeeInfoNotFoundException,
 )
+from app.exceptions.position import PositionNotFoundException
 from app.repositories.department import DepartmentRepository
 from app.repositories.employee import EmployeeRepository
 from app.repositories.employe_info import EmployeeInfoRepository
+from app.repositories.position import PositionRepository
 from app.schemas.common import PaginationParams
 from app.schemas.employe_info import (
     EmployeeInfoCreate,
@@ -23,10 +25,12 @@ class EmployeeInfoService:
         repo: EmployeeInfoRepository,
         employee_repo: EmployeeRepository,
         department_repo: DepartmentRepository,
+        position_repo: PositionRepository,
     ) -> None:
         self.repo = repo
         self.employee_repo = employee_repo
         self.department_repo = department_repo
+        self.position_repo = position_repo
 
     async def _validate_employee(self, employee_id: int) -> None:
         if await self.employee_repo.get_by_id(employee_id) is None:
@@ -38,9 +42,16 @@ class EmployeeInfoService:
         if await self.department_repo.get_by_id(department_id) is None:
             raise DepartmentNotFoundException()
 
+    async def _validate_position(self, position_id: int | None) -> None:
+        if position_id is None:
+            return
+        if await self.position_repo.get_by_id(position_id) is None:
+            raise PositionNotFoundException()
+
     async def create(self, data: EmployeeInfoCreate) -> EmployeeInfoRead:
         await self._validate_employee(data.employee_id)
         await self._validate_department(data.department_id)
+        await self._validate_position(data.position_id)
         if await self.repo.get_by_employee_id(data.employee_id):
             raise EmployeeInfoAlreadyExistsException()
         info = await self.repo.create(data)
@@ -79,6 +90,8 @@ class EmployeeInfoService:
             raise EmployeeInfoNotFoundException()
         if "department_id" in data.model_fields_set:
             await self._validate_department(data.department_id)
+        if "position_id" in data.model_fields_set:
+            await self._validate_position(data.position_id)
         info = await self.repo.update(info, data)
         return EmployeeInfoRead.model_validate(info)
 

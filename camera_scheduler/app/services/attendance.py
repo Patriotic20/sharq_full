@@ -11,6 +11,7 @@ from app.enums.attendance import AttendanceStatus, PresenceStatus
 from app.enums.camera import CameraType
 from app.models.attendance_event import AttendanceEvent
 from app.models.attendances import Attendance
+from app.models.employe_info import EmployeeInfo
 from app.models.employees import Employee
 from app.models.work_schedule import WorkSchedule
 from app.services.attendance_status import compute_status
@@ -165,6 +166,8 @@ async def save_attendance(records, camera):
                     camera_user_id=user_id,
                 )
                 session.add(emp)
+                await session.flush()
+                session.add(EmployeeInfo(employee_id=emp.id, full_name=full_name))
                 await session.flush()
                 emp_by_user_id[user_id] = emp
                 stats["created_employees"] += 1

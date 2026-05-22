@@ -248,7 +248,7 @@ async def build_tabel_data(
         rows.append(TabelEmployeeRow(
             employee_id=emp.id,
             full_name=f"{emp.last_name} {emp.first_name} {emp.middle_name or ''}".strip(),
-            position=emp.position,
+            position=emp.position.name if emp.position else None,
             employment_rate=float(emp.employment_rate),
             days=days,
             worked_days=worked,

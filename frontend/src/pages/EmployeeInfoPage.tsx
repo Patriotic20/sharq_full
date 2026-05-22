@@ -181,7 +181,7 @@ export default function EmployeeInfoPage() {
                         <p className="text-xs text-gray-400">xodim #{info.employee_id}</p>
                       </td>
                       <td className="px-4 py-3 text-gray-600">
-                        {info.position || <span className="text-gray-200">—</span>}
+                        {info.position?.name || <span className="text-gray-200">—</span>}
                       </td>
                       <td className="px-4 py-3">
                         {info.department

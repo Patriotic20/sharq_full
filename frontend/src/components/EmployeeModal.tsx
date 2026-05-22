@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import { listDepartments } from '../api/department'
+import { listPositions } from '../api/position'
 import type { Department } from '../types/department'
 import type { Employee, EmployeeUpdate } from '../types/employee'
+import type { Position } from '../types/position'
 
 interface Props {
   employee: Employee
@@ -17,9 +19,10 @@ export default function EmployeeModal({ employee, onClose, onSubmit }: Props) {
     camera_user_id: '',
     department_id: '' as string,
     employment_rate: '1.00',
-    position: '',
+    position_id: '' as string,
   })
   const [departments, setDepartments] = useState<Department[]>([])
+  const [positions, setPositions] = useState<Position[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -31,7 +34,7 @@ export default function EmployeeModal({ employee, onClose, onSubmit }: Props) {
       camera_user_id: employee.camera_user_id ?? '',
       department_id:  employee.department_id ? String(employee.department_id) : '',
       employment_rate: employee.employment_rate != null ? String(employee.employment_rate) : '1.00',
-      position:       employee.position ?? '',
+      position_id:    employee.position_id != null ? String(employee.position_id) : '',
     })
   }, [employee])
 
@@ -39,6 +42,9 @@ export default function EmployeeModal({ employee, onClose, onSubmit }: Props) {
     listDepartments({ page: 1, size: 100, order: 'asc' })
       .then(res => setDepartments(res.items))
       .catch(() => setDepartments([]))
+    listPositions({ page: 1, size: 200, order: 'asc' })
+      .then(res => setPositions(res.items))
+      .catch(() => setPositions([]))
   }, [])
 
   const set = (field: keyof typeof form, value: string) => setForm(f => ({ ...f, [field]: value }))
@@ -55,7 +61,7 @@ export default function EmployeeModal({ employee, onClose, onSubmit }: Props) {
         camera_user_id: form.camera_user_id || null,
         department_id:  form.department_id ? Number(form.department_id) : null,
         employment_rate: form.employment_rate ? Number(form.employment_rate) : undefined,
-        position:       form.position || null,
+        position_id:    form.position_id ? Number(form.position_id) : null,
       }
       await onSubmit(payload)
       onClose()
@@ -122,9 +128,16 @@ export default function EmployeeModal({ employee, onClose, onSubmit }: Props) {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className={labelClass}>Lavozim</label>
-              <input className={fieldClass} value={form.position}
-                onChange={e => set('position', e.target.value)}
-                placeholder="masalan: o'qituvchi" />
+              <select
+                className={fieldClass}
+                value={form.position_id}
+                onChange={e => set('position_id', e.target.value)}
+              >
+                <option value="">— Lavozimsiz —</option>
+                {positions.map(p => (
+                  <option key={p.id} value={p.id}>{p.name}</option>
+                ))}
+              </select>
             </div>
             <div>
               <label className={labelClass}>Stavka</label>

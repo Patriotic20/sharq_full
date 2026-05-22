@@ -1,13 +1,14 @@
-import { Pencil, Trash2 } from 'lucide-react'
+import { Pencil, Plus, Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
-import { deleteEmployee, listEmployees, updateEmployee } from '../api/employee'
+import { createEmployee, deleteEmployee, listEmployees, updateEmployee } from '../api/employee'
+import EmployeeCreateModal from '../components/EmployeeCreateModal'
 import EmployeeModal from '../components/EmployeeModal'
 import { PermissionGate } from '../components/PermissionGate'
 import { DeleteDialog } from '../components/ui/DeleteDialog'
 import { IconButton } from '../components/ui/IconButton'
 import { Pagination } from '../components/ui/Pagination'
 import { useDebounce } from '../hooks/useDebounce'
-import type { Employee, EmployeeListResponse, EmployeeUpdate } from '../types/employee'
+import type { Employee, EmployeeCreate, EmployeeListResponse, EmployeeUpdate } from '../types/employee'
 
 interface Props {
   onViewAttendance: (emp: Employee) => void
@@ -35,6 +36,7 @@ export default function EmployeePage({ onViewAttendance }: Props) {
   const search = useDebounce(searchInput)
 
   const [editEmployee, setEditEmployee] = useState<Employee | null>(null)
+  const [createOpen, setCreateOpen] = useState(false)
   const [deleteId, setDeleteId] = useState<number | null>(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
 
@@ -59,6 +61,11 @@ export default function EmployeePage({ onViewAttendance }: Props) {
     await load()
   }
 
+  async function handleCreate(data: EmployeeCreate) {
+    await createEmployee(data)
+    await load()
+  }
+
   async function handleDelete() {
     if (deleteId === null) return
     setDeleteLoading(true)
@@ -77,6 +84,15 @@ export default function EmployeePage({ onViewAttendance }: Props) {
             <p className="text-sm text-gray-400 mt-0.5">{data.total} ta xodim</p>
           )}
         </div>
+        <PermissionGate code="employees:write">
+          <button
+            onClick={() => setCreateOpen(true)}
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm rounded-xl bg-primary-600 text-white hover:bg-primary-700 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Yangi xodim
+          </button>
+        </PermissionGate>
       </div>
 
       {/* Content */}
@@ -198,6 +214,13 @@ export default function EmployeePage({ onViewAttendance }: Props) {
           <Pagination page={page} pages={data?.pages ?? 1} onPageChange={setPage} />
         </div>
       </div>
+
+      {createOpen && (
+        <EmployeeCreateModal
+          onClose={() => setCreateOpen(false)}
+          onSubmit={handleCreate}
+        />
+      )}
 
       {editEmployee && (
         <EmployeeModal

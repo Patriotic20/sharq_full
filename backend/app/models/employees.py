@@ -28,9 +28,14 @@ class Employee(Base, IdIntPk, TimestampMixin):
     employment_rate: Mapped[Decimal] = mapped_column(
         Numeric(3, 2), nullable=False, server_default="1.00"
     )
-    position: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    position_id: Mapped[int | None] = mapped_column(
+        ForeignKey("positions.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
 
     department = relationship("Department", back_populates="employees", lazy="joined")
+    position = relationship("Position", back_populates="employees", lazy="joined")
     attendances = relationship("Attendance", back_populates="employee")
     info = relationship(
         "EmployeeInfo",

@@ -11,9 +11,11 @@ from app.exceptions.employe_info import (
     EmployeeInfoAlreadyExistsException,
     EmployeeInfoNotFoundException,
 )
+from app.exceptions.position import PositionNotFoundException
 from app.repositories.department import DepartmentRepository
 from app.repositories.employee import EmployeeRepository
 from app.repositories.employe_info import EmployeeInfoRepository
+from app.repositories.position import PositionRepository
 from app.schemas.common import PaginationParams
 from app.schemas.employe_info import (
     EmployeeInfoCreate,
@@ -34,6 +36,7 @@ def get_employee_info_service(
         EmployeeInfoRepository(session),
         EmployeeRepository(session),
         DepartmentRepository(session),
+        PositionRepository(session),
     )
 
 
@@ -42,6 +45,7 @@ def _handle(
     | EmployeeInfoAlreadyExistsException
     | EmployeeNotFoundException
     | DepartmentNotFoundException
+    | PositionNotFoundException
     | DatabaseException,
 ) -> None:
     raise HTTPException(status_code=exc.status_code, detail=exc.detail)
@@ -86,6 +90,7 @@ async def create_employee_info(
     except (
         EmployeeNotFoundException,
         DepartmentNotFoundException,
+        PositionNotFoundException,
         EmployeeInfoAlreadyExistsException,
         DatabaseException,
     ) as e:
@@ -122,6 +127,7 @@ async def update_employee_info(
     except (
         EmployeeInfoNotFoundException,
         DepartmentNotFoundException,
+        PositionNotFoundException,
         DatabaseException,
     ) as e:
         _handle(e)

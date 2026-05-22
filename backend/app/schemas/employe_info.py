@@ -4,8 +4,10 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from app.enums.employee import Gender
 from app.schemas.common import PaginationParams, build_pages
 from app.schemas.department import DepartmentBrief
+from app.schemas.position import PositionBrief
 
 
 class EmployeeInfoSearchParams(BaseModel):
@@ -21,7 +23,7 @@ class EmployeeInfoCreate(BaseModel):
     employee_id: int
     full_name: str = Field(min_length=1, max_length=200)
     nationality: str | None = Field(default=None, max_length=50)
-    gender: str | None = Field(default=None, max_length=10)
+    gender: Gender | None = None
     birth_date: date | None = None
     birth_place: str | None = None
     residence_address: str | None = None
@@ -31,7 +33,7 @@ class EmployeeInfoCreate(BaseModel):
     scientific_title: str | None = Field(default=None, max_length=100)
     work_experience: str | None = None
     department_id: int | None = None
-    position: str | None = Field(default=None, max_length=150)
+    position_id: int | None = None
     employment_rate: Decimal | None = Field(default=None, ge=0, le=9.99)
     state_awards: str | None = None
     foreign_languages: str | None = Field(default=None, max_length=255)
@@ -45,7 +47,7 @@ class EmployeeInfoUpdate(BaseModel):
 
     full_name: str | None = Field(default=None, min_length=1, max_length=200)
     nationality: str | None = Field(default=None, max_length=50)
-    gender: str | None = Field(default=None, max_length=10)
+    gender: Gender | None = None
     birth_date: date | None = None
     birth_place: str | None = None
     residence_address: str | None = None
@@ -55,7 +57,7 @@ class EmployeeInfoUpdate(BaseModel):
     scientific_title: str | None = Field(default=None, max_length=100)
     work_experience: str | None = None
     department_id: int | None = None
-    position: str | None = Field(default=None, max_length=150)
+    position_id: int | None = None
     employment_rate: Decimal | None = Field(default=None, ge=0, le=9.99)
     state_awards: str | None = None
     foreign_languages: str | None = Field(default=None, max_length=255)
@@ -71,7 +73,7 @@ class EmployeeInfoRead(BaseModel):
     employee_id: int
     full_name: str
     nationality: str | None = None
-    gender: str | None = None
+    gender: Gender | None = None
     birth_date: date | None = None
     birth_place: str | None = None
     residence_address: str | None = None
@@ -82,7 +84,8 @@ class EmployeeInfoRead(BaseModel):
     work_experience: str | None = None
     department_id: int | None = None
     department: DepartmentBrief | None = None
-    position: str | None = None
+    position_id: int | None = None
+    position: PositionBrief | None = None
     employment_rate: Decimal | None = None
     state_awards: str | None = None
     foreign_languages: str | None = None

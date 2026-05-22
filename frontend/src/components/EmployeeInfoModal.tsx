@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { listDepartments } from '../api/department'
 import { listEmployees } from '../api/employee'
+import { listPositions } from '../api/position'
 import type { Department } from '../types/department'
 import type { Employee } from '../types/employee'
 import type {
@@ -8,6 +9,7 @@ import type {
   EmployeeInfoCreate,
   EmployeeInfoUpdate,
 } from '../types/employeInfo'
+import type { Position } from '../types/position'
 
 interface Props {
   info: EmployeeInfo | null
@@ -29,7 +31,7 @@ const EMPTY = {
   scientific_title: '',
   work_experience: '',
   department_id: '',
-  position: '',
+  position_id: '',
   employment_rate: '',
   state_awards: '',
   foreign_languages: '',
@@ -43,6 +45,7 @@ export default function EmployeeInfoModal({ info, onClose, onSubmit }: Props) {
   const [form, setForm] = useState(EMPTY)
   const [departments, setDepartments] = useState<Department[]>([])
   const [employees, setEmployees] = useState<Employee[]>([])
+  const [positions, setPositions] = useState<Position[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -62,7 +65,7 @@ export default function EmployeeInfoModal({ info, onClose, onSubmit }: Props) {
         scientific_title:  info.scientific_title ?? '',
         work_experience:   info.work_experience ?? '',
         department_id:     info.department_id != null ? String(info.department_id) : '',
-        position:          info.position ?? '',
+        position_id:       info.position_id != null ? String(info.position_id) : '',
         employment_rate:   info.employment_rate != null ? String(info.employment_rate) : '',
         state_awards:      info.state_awards ?? '',
         foreign_languages: info.foreign_languages ?? '',
@@ -82,6 +85,9 @@ export default function EmployeeInfoModal({ info, onClose, onSubmit }: Props) {
     listEmployees({ page: 1, size: 200, order: 'asc' })
       .then(res => setEmployees(res.items))
       .catch(() => setEmployees([]))
+    listPositions({ page: 1, size: 200, order: 'asc' })
+      .then(res => setPositions(res.items))
+      .catch(() => setPositions([]))
   }, [])
 
   const set = (field: keyof typeof form, value: string) =>
@@ -105,7 +111,7 @@ export default function EmployeeInfoModal({ info, onClose, onSubmit }: Props) {
         scientific_title:  form.scientific_title  || null,
         work_experience:   form.work_experience   || null,
         department_id:     form.department_id     ? Number(form.department_id) : null,
-        position:          form.position          || null,
+        position_id:       form.position_id       ? Number(form.position_id) : null,
         employment_rate:   form.employment_rate   ? Number(form.employment_rate) : null,
         state_awards:      form.state_awards      || null,
         foreign_languages: form.foreign_languages || null,
@@ -263,8 +269,16 @@ export default function EmployeeInfoModal({ info, onClose, onSubmit }: Props) {
 
             <div>
               <label className={labelClass}>Lavozim</label>
-              <input className={fieldClass} value={form.position}
-                onChange={e => set('position', e.target.value)} />
+              <select
+                className={fieldClass}
+                value={form.position_id}
+                onChange={e => set('position_id', e.target.value)}
+              >
+                <option value="">— Lavozimsiz —</option>
+                {positions.map(p => (
+                  <option key={p.id} value={p.id}>{p.name}</option>
+                ))}
+              </select>
             </div>
 
             <div>

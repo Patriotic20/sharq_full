@@ -6,6 +6,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.schemas.department import DepartmentBrief
+from app.schemas.position import PositionBrief
 
 
 class PaginationParams(BaseModel):
@@ -36,9 +37,6 @@ class EmployeeCreate(BaseModel):
     last_name: str = Field(min_length=1, max_length=50)
     middle_name: str = Field(min_length=1, max_length=50)
     camera_user_id: str | None = Field(default=None, max_length=50)
-    department_id: int | None = None
-    employment_rate: Decimal = Field(default=Decimal("1.00"), ge=0, le=9.99)
-    position: str | None = Field(default=None, max_length=100)
 
 
 class EmployeeUpdate(BaseModel):
@@ -50,7 +48,7 @@ class EmployeeUpdate(BaseModel):
     camera_user_id: str | None = Field(default=None, max_length=50)
     department_id: int | None = None
     employment_rate: Decimal | None = Field(default=None, ge=0, le=9.99)
-    position: str | None = Field(default=None, max_length=100)
+    position_id: int | None = None
 
 
 class EmployeeRead(BaseModel):
@@ -64,7 +62,8 @@ class EmployeeRead(BaseModel):
     department_id: int | None
     department: DepartmentBrief | None = None
     employment_rate: Decimal = Decimal("1.00")
-    position: str | None = None
+    position_id: int | None = None
+    position: PositionBrief | None = None
     created_at: datetime
     updated_at: datetime
 

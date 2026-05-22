@@ -15,6 +15,7 @@ __all__ = [
     "Department",
     "Group",
     "Holiday",
+    "Position",
 ]
 
 from .base import Base
@@ -33,3 +34,4 @@ from .role_permission import RolePermission
 from .department import Department
 from .group import Group
 from .holiday import Holiday
+from .position import Position

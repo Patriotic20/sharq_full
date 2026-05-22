@@ -10,9 +10,13 @@ from app.exceptions.employee import (
     EmployeeNotFoundException,
     EmployeeAlreadyExistsException,
 )
+from app.exceptions.position import PositionNotFoundException
 from app.repositories.department import DepartmentRepository
 from app.repositories.employee import EmployeeRepository
+from app.repositories.employe_info import EmployeeInfoRepository
+from app.repositories.position import PositionRepository
 from app.schemas.employee import (
+    EmployeeCreate,
     EmployeeListResponse,
     EmployeeRead,
     EmployeeSearchParams,
@@ -30,6 +34,8 @@ def get_employee_service(
     return EmployeeService(
         EmployeeRepository(session),
         DepartmentRepository(session),
+        PositionRepository(session),
+        EmployeeInfoRepository(session),
     )
 
 
@@ -37,9 +43,26 @@ def _handle(
     exc: EmployeeNotFoundException
     | EmployeeAlreadyExistsException
     | DepartmentNotFoundException
+    | PositionNotFoundException
     | DatabaseException,
 ) -> None:
     raise HTTPException(status_code=exc.status_code, detail=exc.detail)
+
+
+@router.post(
+    "/",
+    response_model=EmployeeRead,
+    status_code=201,
+    dependencies=[Depends(require_permission("employees:write"))],
+)
+async def create_employee(
+    data: EmployeeCreate,
+    service: EmployeeService = Depends(get_employee_service),
+) -> EmployeeRead:
+    try:
+        return await service.create(data)
+    except (EmployeeAlreadyExistsException, DatabaseException) as e:
+        _handle(e)
 
 
 @router.get(
@@ -99,6 +122,7 @@ async def update_employee(
         EmployeeNotFoundException,
         EmployeeAlreadyExistsException,
         DepartmentNotFoundException,
+        PositionNotFoundException,
         DatabaseException,
     ) as e:
         _handle(e)

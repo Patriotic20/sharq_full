@@ -1,8 +1,10 @@
 from datetime import date
 from decimal import Decimal
 
-from sqlalchemy import Date, ForeignKey, Numeric, String, Text
+from sqlalchemy import Date, Enum, ForeignKey, Numeric, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from app.enums.employee import Gender
 
 from .base import Base
 from .mixins.id_int_pk import IdIntPk
@@ -21,7 +23,14 @@ class EmployeeInfo(Base, IdIntPk, TimestampMixin):
 
     full_name: Mapped[str] = mapped_column(String(200), nullable=False, index=True)
     nationality: Mapped[str | None] = mapped_column(String(50), nullable=True)
-    gender: Mapped[str | None] = mapped_column(String(10), nullable=True)
+    gender: Mapped[Gender | None] = mapped_column(
+        Enum(
+            Gender,
+            values_callable=lambda obj: [m.value for m in obj],
+            name="gender",
+        ),
+        nullable=True,
+    )
     birth_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     birth_place: Mapped[str | None] = mapped_column(Text, nullable=True)
     residence_address: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -37,7 +46,11 @@ class EmployeeInfo(Base, IdIntPk, TimestampMixin):
         index=True,
     )
 
-    position: Mapped[str | None] = mapped_column(String(150), nullable=True)
+    position_id: Mapped[int | None] = mapped_column(
+        ForeignKey("positions.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
     employment_rate: Mapped[Decimal | None] = mapped_column(
         Numeric(3, 2), nullable=True
     )
@@ -49,3 +62,4 @@ class EmployeeInfo(Base, IdIntPk, TimestampMixin):
 
     employee = relationship("Employee", back_populates="info", lazy="joined")
     department = relationship("Department", lazy="joined")
+    position = relationship("Position", back_populates="employee_infos", lazy="joined")

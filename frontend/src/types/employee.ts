@@ -1,4 +1,5 @@
 import type { DepartmentBrief } from './department'
+import type { PositionBrief } from './position'
 
 export interface Employee {
   id: number
@@ -9,7 +10,8 @@ export interface Employee {
   department_id: number | null
   department: DepartmentBrief | null
   employment_rate: number
-  position: string | null
+  position_id: number | null
+  position: PositionBrief | null
   created_at: string
   updated_at: string
 }
@@ -22,6 +24,13 @@ export interface EmployeeListResponse {
   pages: number
 }
 
+export interface EmployeeCreate {
+  first_name: string
+  last_name: string
+  middle_name: string
+  camera_user_id?: string | null
+}
+
 export interface EmployeeUpdate {
   first_name?: string
   last_name?: string
@@ -29,5 +38,5 @@ export interface EmployeeUpdate {
   camera_user_id?: string | null
   department_id?: number | null
   employment_rate?: number
-  position?: string | null
+  position_id?: number | null
 }
