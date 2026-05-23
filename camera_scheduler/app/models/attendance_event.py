@@ -27,7 +27,13 @@ class AttendanceEvent(Base, IdIntPk, TimestampMixin):
         index=True,
     )
     type: Mapped[CameraType] = mapped_column(
-        Enum(CameraType, name="cameratype", create_type=False), nullable=False
+        Enum(
+            CameraType,
+            name="cameratype",
+            create_type=False,
+            values_callable=lambda x: [e.value for e in x],
+        ),
+        nullable=False,
     )
     event_time: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, index=True
