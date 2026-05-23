@@ -8,7 +8,7 @@ import { DeleteDialog } from '../components/ui/DeleteDialog'
 import { IconButton } from '../components/ui/IconButton'
 import { Pagination } from '../components/ui/Pagination'
 import { useDebounce } from '../hooks/useDebounce'
-import type { Employee, EmployeeCreate, EmployeeListResponse, EmployeeUpdate } from '../types/employee'
+import type { Employee, EmployeeCreate, EmployeeListResponse, EmployeeStatus, EmployeeUpdate } from '../types/employee'
 
 interface Props {
   onViewAttendance: (emp: Employee) => void
@@ -17,12 +17,28 @@ interface Props {
 function SkeletonRow() {
   return (
     <tr>
-      {[28, 140, 100, 100, 80, 72, 60].map((w, i) => (
+      {[28, 140, 100, 100, 80, 70, 72, 60].map((w, i) => (
         <td key={i} className="px-4 py-3">
           <div className="h-4 bg-gray-100 rounded animate-pulse" style={{ width: w }} />
         </td>
       ))}
     </tr>
+  )
+}
+
+const STATUS_LABELS: Record<EmployeeStatus, string> = {
+  worker: 'Xodim',
+  student: 'Talaba',
+}
+
+function StatusBadge({ status }: { status: EmployeeStatus | null }) {
+  if (!status) return <span className="text-gray-200 select-none">—</span>
+  const cls =
+    status === 'worker'
+      ? 'bg-emerald-50 text-emerald-700'
+      : 'bg-amber-50 text-amber-700'
+  return (
+    <span className={`text-xs px-2 py-0.5 rounded-lg ${cls}`}>{STATUS_LABELS[status]}</span>
   )
 }
 
@@ -32,6 +48,7 @@ export default function EmployeePage({ onViewAttendance }: Props) {
   const [error, setError] = useState('')
   const [page, setPage] = useState(1)
   const [order, setOrder] = useState<'asc' | 'desc'>('desc')
+  const [status, setStatus] = useState<EmployeeStatus | ''>('')
   const [searchInput, setSearchInput] = useState({ first_name: '', last_name: '', camera_user_id: '' })
   const search = useDebounce(searchInput)
 
@@ -44,14 +61,20 @@ export default function EmployeePage({ onViewAttendance }: Props) {
     setLoading(true)
     setError('')
     try {
-      const res = await listEmployees({ page, size: 10, order, ...search })
+      const res = await listEmployees({
+        page,
+        size: 10,
+        order,
+        ...search,
+        ...(status ? { status } : {}),
+      })
       setData(res)
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Xatolik yuz berdi')
     } finally {
       setLoading(false)
     }
-  }, [page, order, search])
+  }, [page, order, status, search])
 
   useEffect(() => { load() }, [load])
 
@@ -120,6 +143,15 @@ export default function EmployeePage({ onViewAttendance }: Props) {
           />
           <select
             className="border border-gray-200 rounded-xl px-3 py-2 text-sm bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition-colors"
+            value={status}
+            onChange={e => { setPage(1); setStatus(e.target.value as EmployeeStatus | '') }}
+          >
+            <option value="">Barcha statuslar</option>
+            <option value="worker">Xodim</option>
+            <option value="student">Talaba</option>
+          </select>
+          <select
+            className="border border-gray-200 rounded-xl px-3 py-2 text-sm bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition-colors"
             value={order}
             onChange={e => { setPage(1); setOrder(e.target.value as 'asc' | 'desc') }}
           >
@@ -137,7 +169,7 @@ export default function EmployeePage({ onViewAttendance }: Props) {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
-                {['ID', "To'liq ism", 'Otasining ismi', "Bo'lim", 'Kamera ID', 'Yaratilgan', ''].map((h, i, arr) => (
+                {['ID', "To'liq ism", 'Otasining ismi', "Bo'lim", 'Kamera ID', 'Status', 'Yaratilgan', ''].map((h, i, arr) => (
                   <th
                     key={i}
                     className={`px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider ${i === arr.length - 1 ? 'text-right' : 'text-left'}`}
@@ -152,7 +184,7 @@ export default function EmployeePage({ onViewAttendance }: Props) {
                 Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} />)
               ) : data?.items.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-16 text-center">
+                  <td colSpan={8} className="px-4 py-16 text-center">
                     <div className="inline-flex flex-col items-center gap-2">
                       <span className="text-3xl">👤</span>
                       <p className="text-sm text-gray-400">Xodimlar topilmadi</p>
@@ -182,6 +214,9 @@ export default function EmployeePage({ onViewAttendance }: Props) {
                         ? <span className="font-mono text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-lg">{emp.camera_user_id}</span>
                         : <span className="text-gray-200 select-none">—</span>
                       }
+                    </td>
+                    <td className="px-4 py-3">
+                      <StatusBadge status={emp.status} />
                     </td>
                     <td className="px-4 py-3 text-gray-400 text-xs tabular-nums">
                       {new Date(emp.created_at).toLocaleDateString('uz-UZ')}

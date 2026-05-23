@@ -1,6 +1,7 @@
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.enums.employee_status import EmployeeStatus
 from app.exceptions.employee import DatabaseException
 from app.models.employees import Employee
 from app.schemas.employee import EmployeeCreate, EmployeeUpdate
@@ -41,6 +42,7 @@ class EmployeeRepository:
         last_name: str | None,
         camera_user_id: str | None,
         department_id: int | None = None,
+        status: EmployeeStatus | None = None,
         order: str = "desc",
     ) -> tuple[list[Employee], int]:
         query = select(Employee)
@@ -53,6 +55,8 @@ class EmployeeRepository:
             query = query.where(Employee.camera_user_id.ilike(f"%{camera_user_id}%"))
         if department_id is not None:
             query = query.where(Employee.department_id == department_id)
+        if status is not None:
+            query = query.where(Employee.status == status)
 
         count_result = await self.session.execute(
             select(func.count()).select_from(query.subquery())

@@ -70,6 +70,7 @@ class EmployeeService:
             last_name=search.last_name,
             camera_user_id=search.camera_user_id,
             department_id=search.department_id,
+            status=search.status,
             order=search.order,
         )
         return EmployeeListResponse.build(

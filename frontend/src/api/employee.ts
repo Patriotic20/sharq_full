@@ -1,5 +1,5 @@
 import { request } from './client'
-import type { Employee, EmployeeCreate, EmployeeListResponse, EmployeeUpdate } from '../types/employee'
+import type { Employee, EmployeeCreate, EmployeeListResponse, EmployeeStatus, EmployeeUpdate } from '../types/employee'
 
 export interface EmployeeListParams {
   page?: number
@@ -8,6 +8,7 @@ export interface EmployeeListParams {
   last_name?: string
   camera_user_id?: string
   department_id?: number
+  status?: EmployeeStatus
   order?: 'asc' | 'desc'
 }
 
@@ -19,6 +20,7 @@ export function listEmployees(params: EmployeeListParams = {}): Promise<Employee
   if (params.last_name) q.set('last_name', params.last_name)
   if (params.camera_user_id) q.set('camera_user_id', params.camera_user_id)
   if (params.department_id !== undefined) q.set('department_id', String(params.department_id))
+  if (params.status) q.set('status', params.status)
   if (params.order) q.set('order', params.order)
   return request(`/employees/?${q}`)
 }

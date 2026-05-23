@@ -5,6 +5,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from app.enums.employee_status import EmployeeStatus
 from app.schemas.department import DepartmentBrief
 from app.schemas.position import PositionBrief
 
@@ -27,6 +28,7 @@ class EmployeeSearchParams(BaseModel):
     last_name: str | None = None
     camera_user_id: str | None = None
     department_id: int | None = None
+    status: EmployeeStatus | None = None
     order: Literal["asc", "desc"] = "desc"
 
 
@@ -37,6 +39,7 @@ class EmployeeCreate(BaseModel):
     last_name: str = Field(min_length=1, max_length=50)
     middle_name: str = Field(min_length=1, max_length=50)
     camera_user_id: str | None = Field(default=None, max_length=50)
+    status: EmployeeStatus | None = None
 
 
 class EmployeeUpdate(BaseModel):
@@ -49,6 +52,7 @@ class EmployeeUpdate(BaseModel):
     department_id: int | None = None
     employment_rate: Decimal | None = Field(default=None, ge=0, le=9.99)
     position_id: int | None = None
+    status: EmployeeStatus | None = None
 
 
 class EmployeeRead(BaseModel):
@@ -64,6 +68,7 @@ class EmployeeRead(BaseModel):
     employment_rate: Decimal = Decimal("1.00")
     position_id: int | None = None
     position: PositionBrief | None = None
+    status: EmployeeStatus | None = None
     created_at: datetime
     updated_at: datetime
 

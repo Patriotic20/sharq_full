@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import get_session, require_permission
+from app.enums.employee_status import EmployeeStatus
 from app.exceptions.department import DepartmentNotFoundException
 from app.exceptions.employee import (
     DatabaseException,
@@ -77,6 +78,7 @@ async def list_employees(
     last_name: str | None = None,
     camera_user_id: str | None = None,
     department_id: int | None = None,
+    status: EmployeeStatus | None = None,
     order: Literal["asc", "desc"] = "desc",
     service: EmployeeService = Depends(get_employee_service),
 ) -> EmployeeListResponse:
@@ -86,6 +88,7 @@ async def list_employees(
         last_name=last_name,
         camera_user_id=camera_user_id,
         department_id=department_id,
+        status=status,
         order=order,
     )
     return await service.list(pagination, search)

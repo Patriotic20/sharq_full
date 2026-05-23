@@ -4,8 +4,10 @@ from .mixins.time_stamp_mixin import TimestampMixin
 
 from decimal import Decimal
 
-from sqlalchemy import ForeignKey, Numeric, String
+from sqlalchemy import Enum as SAEnum, ForeignKey, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from app.enums.employee_status import EmployeeStatus
 
 
 class Employee(Base, IdIntPk, TimestampMixin):
@@ -30,6 +32,17 @@ class Employee(Base, IdIntPk, TimestampMixin):
     )
     position_id: Mapped[int | None] = mapped_column(
         ForeignKey("positions.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+
+    status: Mapped[EmployeeStatus | None] = mapped_column(
+        SAEnum(
+            EmployeeStatus,
+            name="employeestatus",
+            create_type=False,
+            values_callable=lambda x: [e.value for e in x],
+        ),
         nullable=True,
         index=True,
     )

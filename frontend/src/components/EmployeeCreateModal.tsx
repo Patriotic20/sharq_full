@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { EmployeeCreate } from '../types/employee'
+import type { EmployeeCreate, EmployeeStatus } from '../types/employee'
 
 interface Props {
   onClose: () => void
@@ -12,11 +12,12 @@ export default function EmployeeCreateModal({ onClose, onSubmit }: Props) {
     last_name: '',
     middle_name: '',
     camera_user_id: '',
+    status: '' as EmployeeStatus | '',
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const set = (field: keyof typeof form, value: string) =>
+  const set = (field: Exclude<keyof typeof form, 'status'>, value: string) =>
     setForm(f => ({ ...f, [field]: value }))
 
   async function handleSubmit(e: React.FormEvent) {
@@ -29,6 +30,7 @@ export default function EmployeeCreateModal({ onClose, onSubmit }: Props) {
         last_name: form.last_name,
         middle_name: form.middle_name,
         camera_user_id: form.camera_user_id || null,
+        status: form.status || null,
       })
       onClose()
     } catch (err: unknown) {
@@ -72,6 +74,21 @@ export default function EmployeeCreateModal({ onClose, onSubmit }: Props) {
             </label>
             <input className={fieldClass} value={form.camera_user_id}
               onChange={e => set('camera_user_id', e.target.value)} />
+          </div>
+
+          <div>
+            <label className={labelClass}>
+              Status <span className="text-gray-400 font-normal">(ixtiyoriy)</span>
+            </label>
+            <select
+              className={fieldClass}
+              value={form.status}
+              onChange={e => setForm(f => ({ ...f, status: e.target.value as EmployeeStatus | '' }))}
+            >
+              <option value="">— Statussiz —</option>
+              <option value="worker">Xodim</option>
+              <option value="student">Talaba</option>
+            </select>
           </div>
 
           {error && <p className="text-sm text-red-600">{error}</p>}

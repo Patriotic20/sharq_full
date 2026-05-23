@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { listDepartments } from '../api/department'
 import { listPositions } from '../api/position'
 import type { Department } from '../types/department'
-import type { Employee, EmployeeUpdate } from '../types/employee'
+import type { Employee, EmployeeStatus, EmployeeUpdate } from '../types/employee'
 import type { Position } from '../types/position'
 
 interface Props {
@@ -20,6 +20,7 @@ export default function EmployeeModal({ employee, onClose, onSubmit }: Props) {
     department_id: '' as string,
     employment_rate: '1.00',
     position_id: '' as string,
+    status: '' as EmployeeStatus | '',
   })
   const [departments, setDepartments] = useState<Department[]>([])
   const [positions, setPositions] = useState<Position[]>([])
@@ -35,6 +36,7 @@ export default function EmployeeModal({ employee, onClose, onSubmit }: Props) {
       department_id:  employee.department_id ? String(employee.department_id) : '',
       employment_rate: employee.employment_rate != null ? String(employee.employment_rate) : '1.00',
       position_id:    employee.position_id != null ? String(employee.position_id) : '',
+      status:         employee.status ?? '',
     })
   }, [employee])
 
@@ -47,7 +49,8 @@ export default function EmployeeModal({ employee, onClose, onSubmit }: Props) {
       .catch(() => setPositions([]))
   }, [])
 
-  const set = (field: keyof typeof form, value: string) => setForm(f => ({ ...f, [field]: value }))
+  const set = (field: Exclude<keyof typeof form, 'status'>, value: string) =>
+    setForm(f => ({ ...f, [field]: value }))
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -62,6 +65,7 @@ export default function EmployeeModal({ employee, onClose, onSubmit }: Props) {
         department_id:  form.department_id ? Number(form.department_id) : null,
         employment_rate: form.employment_rate ? Number(form.employment_rate) : undefined,
         position_id:    form.position_id ? Number(form.position_id) : null,
+        status:         form.status || null,
       }
       await onSubmit(payload)
       onClose()
@@ -145,6 +149,21 @@ export default function EmployeeModal({ employee, onClose, onSubmit }: Props) {
                 className={fieldClass} value={form.employment_rate}
                 onChange={e => set('employment_rate', e.target.value)} />
             </div>
+          </div>
+
+          <div>
+            <label className={labelClass}>
+              Status <span className="text-gray-400 font-normal">(ixtiyoriy)</span>
+            </label>
+            <select
+              className={fieldClass}
+              value={form.status}
+              onChange={e => setForm(f => ({ ...f, status: e.target.value as EmployeeStatus | '' }))}
+            >
+              <option value="">— Statussiz —</option>
+              <option value="worker">Xodim</option>
+              <option value="student">Talaba</option>
+            </select>
           </div>
 
           {error && <p className="text-sm text-red-600">{error}</p>}
